@@ -29,6 +29,7 @@ public:
     */
     Quadrilateral(Point p1, Point p2, Point p3, Point p4)
     {
+        // this->findCorners(p1, p2, p3, p4);
         this->fillLines(p1, p2, p3, p4);
         this->getPointsToDraw();
     }
@@ -67,11 +68,45 @@ public:
     {
         return a.y < b.y;
     }
+};
+
+/*
+Basic Rectangle class that inherits from Quadrilateral
+Distinction is that Rectangle constructor does the following:
+    - Takes in four Points (p1, p2, p3, p4, can be random/arbitrary)
+    - Aligns p1 with p2 on the Y axis
+    - Aligns p2 with p3 on the X axis
+    - Aligns p3 with p4 on the Y axis
+    - Aligns p4 with p1 on the X axis
+    - Let align =
+*/
+class Rectangle : public Quadrilateral
+{
+public:
+    Rectangle()
+    {
+    }
+
+    Rectangle(Point p1, Point p2, Point p3, Point p4, bool needsForm = true)
+    {
+        if (needsForm)
+        {
+            // properly assign passed points to their corners (aligns as rectangle)
+            this->findCorners(p1, p2, p3, p4);
+        }
+        // then fill our lines arr
+        this->fillLines(p1, p2, p3, p4);
+        this->getPointsToDraw();
+    }
 
     /*
-    When constructing Quadrilateral, we want to enter p1-p4 as the following: p1 = top left, p2 = top right, p3 = bottom right, p4 = bottom left
-    This method essentially checks to ensure the points are organized as such and if not, reassigns them according to the above
-    */
+   When constructing Rectangle, we want to enter p1-p4 as the following:
+       - p1 = top left
+       - p2 = top right
+       - p3 = bottom right
+       - p4 = bottom left
+   This method essentially converts the Quadrilateral formed by four points to rectangular form
+   */
     void findCorners(Point &topLeft, Point &topRight, Point &bottomRight, Point &bottomLeft)
     {
         std::vector<Point> points = {topLeft, topRight, bottomRight, bottomLeft};
@@ -97,86 +132,6 @@ public:
 };
 
 /*
-Basic Rectangle class that inherits from Quadrilateral
-Distinction is that Rectangle constructor does the following:
-    - Takes in four Points (p1, p2, p3, p4, can be random/arbitrary)
-    - Aligns p1 with p2 on the Y axis
-    - Aligns p2 with p3 on the X axis
-    - Aligns p3 with p4 on the Y axis
-    - Aligns p4 with p1 on the X axis
-    - Let align =
-*/
-class Rectangle : public Quadrilateral
-{
-public:
-    Rectangle()
-    {
-    }
-
-    Rectangle(Point p1, Point p2, Point p3, Point p4, bool needsForm = true)
-    {
-        if (needsForm)
-        {
-            // properly assign passed points to their corners
-            this->findCorners(p1, p2, p3, p4);
-            // first align the four points
-            this->alignPoints(p1, p2, p3, p4);
-        }
-        // then fill our lines arr
-        this->fillLines(p1, p2, p3, p4);
-        this->getPointsToDraw();
-    }
-
-    float alignedX(float x1, float x2)
-    {
-        return floor((x1 + x2) / 2);
-    }
-
-    float alignedY(float y1, float y2)
-    {
-        return floor((y1 + y2) / 2);
-    }
-
-    /*
-    Method that returns a pointer to array of points that have been aligned s.t they form a Rectangle when connected.
-    */
-    Point *getAlignedPoints(Point p1, Point p2, Point p3, Point p4)
-    {
-        // align p1 and p2 on the y axis
-        float alignedY = this->alignedY(p1.y, p2.y);
-        p1.y = alignedY;
-        p2.y = alignedY;
-
-        // align p2 and p3 on the x axis
-        float alignedX = this->alignedX(p2.x, p3.x);
-        p2.x = alignedX;
-        p3.x = alignedX;
-
-        // align p3 and p4 on the y axis
-        alignedY = this->alignedY(p3.y, p4.y);
-        p3.y = alignedY;
-        p4.y = alignedY;
-
-        // align p4 and p1 on the x axis
-        alignedX = this->alignedX(p4.x, p1.x);
-        p4.x = alignedX;
-        p1.x = alignedX;
-
-        Point alignedPoints[4] = {p1, p2, p3, p4};
-        return alignedPoints;
-    }
-
-    void alignPoints(Point &p1, Point &p2, Point &p3, Point &p4)
-    {
-        Point *alignedPoints = this->getAlignedPoints(p1, p2, p3, p4);
-        p1 = alignedPoints[0];
-        p2 = alignedPoints[1];
-        p3 = alignedPoints[2];
-        p4 = alignedPoints[3];
-    }
-};
-
-/*
 Basic Square class that inherits from Rectangle
 Distinction is that Square constructor adjusts points s.t all side lengths are even
 */
@@ -192,7 +147,7 @@ public:
     */
     Square(Point topLeft, float length)
     {
-        // to-do: implement
+        // TO-DO: implement
     }
 
     /*
@@ -208,14 +163,12 @@ public:
         {
             this->findCorners(p1, p2, p3, p4);
             // first align the four points
-            this->alignPoints(p1, p2, p3, p4);
             this->fillLines(p1, p2, p3, p4);
             // make side lengths even
             this->alignXYSize(p1, p2, p3, p4);
         }
         // then fill our lines arr
         this->fillLines(p1, p2, p3, p4);
-
         this->getPointsToDraw();
     }
 

@@ -7,11 +7,10 @@ Point has:
     - x coordinate
     - y coordinate
 */
-class Point
+struct Point
 {
 public:
-    float x;
-    float y;
+    float x, y, z;
 
     Point(float xCoord, float yCoord)
     {
@@ -22,4 +21,17 @@ public:
     Point()
     {
     }
+};
+
+/*
+3D Point class
+Point3D has:
+    - x coord
+    - y coord
+    - z coord
+*/
+struct Point3D
+{
+    float x, y, z;
+    // TO-DO: implement
 };
