@@ -1,6 +1,12 @@
 // simple Point class that holds x, y coordinates
 #pragma once
 
+/*
+Basic Point class
+Point has:
+    - x coordinate
+    - y coordinate
+*/
 class Point
 {
 public:
