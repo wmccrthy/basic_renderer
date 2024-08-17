@@ -1,4 +1,5 @@
 // simple Point class that holds x, y coordinates
+#include "color.h"
 #pragma once
 
 /*
@@ -11,9 +12,11 @@ struct Point
 {
 public:
     float x, y, z;
+    RGBA color = RGBA(255.0f, 255.0f, 255.0f);
 
-    Point(float xCoord, float yCoord)
+    Point(float xCoord, float yCoord, RGBA c = RGBA(255.0f, 255.0f, 255.0f))
     {
+        color = c;
         x = xCoord;
         y = yCoord;
     }

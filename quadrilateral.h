@@ -3,6 +3,7 @@
 #include "line.h"
 #include "point.h"
 #include "math.h"
+#include "color.h"
 #pragma once
 
 /*
@@ -19,6 +20,7 @@ class Quadrilateral
 public:
     Line lines[4];
     std::vector<Point> pointsToDraw;
+    RGBA color = RGBA(255, 255, 255);
 
     Quadrilateral()
     {
@@ -27,19 +29,30 @@ public:
     /*
     Construct Quadrilateral given four points. Use given points to instantiate the quadrilateral's four lines.
     */
-    Quadrilateral(Point p1, Point p2, Point p3, Point p4)
+    Quadrilateral(Point p1, Point p2, Point p3, Point p4, RGBA c = RGBA(255, 255, 255))
     {
         // this->findCorners(p1, p2, p3, p4);
+        printf("quad constructing");
+        c.print();
+        color = c;
         this->fillLines(p1, p2, p3, p4);
         this->getPointsToDraw();
     }
 
+    void setColor(std::vector<Point> points)
+    {
+        for (auto &p : points)
+        {
+            p.color = color;
+        }
+    }
+
     void fillLines(Point p1, Point p2, Point p3, Point p4)
     {
-        lines[0] = Line(p1, p2);
-        lines[1] = Line(p2, p3);
-        lines[2] = Line(p3, p4);
-        lines[3] = Line(p4, p1);
+        lines[0] = Line(p1, p2, color);
+        lines[1] = Line(p2, p3, color);
+        lines[2] = Line(p3, p4, color);
+        lines[3] = Line(p4, p1, color);
     }
 
     void getPointsToDraw()
@@ -87,8 +100,9 @@ public:
     {
     }
 
-    Rectangle(Point p1, Point p2, Point p3, Point p4, bool needsForm = true)
+    Rectangle(Point p1, Point p2, Point p3, Point p4, RGBA c = RGBA(255, 255, 255), bool needsForm = true)
     {
+        color = c;
         if (needsForm)
         {
             // properly assign passed points to their corners (aligns as rectangle)
@@ -156,8 +170,9 @@ public:
         - Point p1, ..., p4: points that form square (can be arbitrary)
         - bool needsForm: boolean to control whether points are reformed
     */
-    Square(Point p1, Point p2, Point p3, Point p4, bool needsForm = true)
+    Square(Point p1, Point p2, Point p3, Point p4, RGBA c = RGBA(255, 255, 255), bool needsForm = true)
     {
+        color = c;
         // properly assign passed points to their corners
         if (needsForm)
         {

@@ -2,6 +2,7 @@
 #include "point.h"
 #include <numeric>
 #include "iostream"
+#include "color.h"
 #pragma once
 
 /*
@@ -16,22 +17,28 @@ public:
     Point point1;
     Point point2;
     std::vector<Point> pointsToDraw;
+    RGBA color = RGBA(255, 255, 255);
 
     Line()
     {
     }
 
-    Line(float x1, float y1, float x2, float y2)
+    Line(float x1, float y1, float x2, float y2, RGBA c = RGBA(255, 255, 255))
     {
-        point1 = Point(x1, y1);
-        point2 = Point(x2, y2);
+        color = c;
+        point1 = Point(x1, y1, color);
+        point2 = Point(x2, y2, color);
         this->getPointsToDraw();
     }
 
-    Line(Point p1, Point p2)
+    Line(Point p1, Point p2, RGBA c = RGBA(255, 255, 255))
     {
         point1 = p1;
         point2 = p2;
+        point1.color = c, point2.color = c;
+        printf("constructing line");
+        c.print();
+        color = c;
         this->getPointsToDraw();
     }
 
@@ -97,6 +104,13 @@ public:
         Point nextPoint;
         nextPoint.x = point1.x + std::cos(angle) * iter;
         nextPoint.y = point1.y + std::sin(angle) * iter;
+        nextPoint.color = color;
+        // std::cout << "getting next line point: ";
+        // color.print();
+
+        /*
+        Why couldn't we have just used y = mx + b for this??
+        */
         return nextPoint;
     }
 };

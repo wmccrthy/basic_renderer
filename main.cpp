@@ -41,16 +41,16 @@ int main()
         // Point p4 = Point(500, 330);
 
         // call addQuadrilateral passing four randomized points
-        testScreen.addQuadrilateral<Quadrilateral>(p1, p2, p3, p4);
-        testScreen.addQuadrilateral<Rectangle>(p1, p2, p3, p4);
-        testScreen.addQuadrilateral<Square>(p1, p2, p3, p4);
+        testScreen.addQuadrilateral<Quadrilateral>(p1, p2, p3, p4, RGBA(255, 0, 0));
+        testScreen.addQuadrilateral<Rectangle>(p1, p2, p3, p4, RGBA(0, 255, 0));
+        testScreen.addQuadrilateral<Square>(p1, p2, p3, p4, RGBA(0, 0, 255));
     }
 
     while (true)
     {
         testScreen.displayScreen();
         testScreen.input();
-        SDL_Delay(50);
+        SDL_Delay(250);
     }
     return 0;
 }
@@ -62,7 +62,10 @@ AGENDA:
         - make Drawer class
             - generally idea for this is given a to draw certain shapes
             - drawLine(p1, p2)
-            - drawSquare(topLeft, anchorPoint)
+            - drawQuadrilateral(p1, p2, p3, p4)
+            - drawRectangle(topLeft, width, height)
+            - drawSquare(topLeft, sideLength)
+            - drawTriangle(p1, p2, p3)
             - and so on...
 
     at this point, the four points we have are the four points that make up the Square

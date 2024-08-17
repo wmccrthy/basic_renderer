@@ -1,4 +1,5 @@
 #include <SDL2/SDL.h>
+#include "color.h"
 #include "point.h"
 #include "line.h"
 #include "quadrilateral.h"
@@ -28,9 +29,10 @@ public:
     }
 
     template <class Q>
-    void addQuadrilateral(Point p1, Point p2, Point p3, Point p4)
+    void addQuadrilateral(Point p1, Point p2, Point p3, Point p4, RGBA color = RGBA(255, 255, 255))
     {
-        Q quad = Q(p1, p2, p3, p4);
+        color.print();
+        Q quad = Q(p1, p2, p3, p4, color);
         this->addPointsToRender<Q>(quad);
     }
 
@@ -59,11 +61,14 @@ public:
         SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255); // set draw color to white
         for (auto &point : points)
         {
-            SDL_RenderDrawPointF(renderer, point.x, point.y); // draw all points in our point vector
+            RGBA color = point.color;
+            // color.print();
+            SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a); // set draw color to white
+            SDL_RenderDrawPointF(renderer, point.x, point.y);                     // draw all points in our point vector
         }
-
         SDL_RenderPresent(renderer); // actually show screen
     }
+    // NOTE: perhaps instead of drawing all points to screen at once, we can have methods that draw single shapes at a time
 
     void input()
     {
