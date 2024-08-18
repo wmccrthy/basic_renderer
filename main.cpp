@@ -29,16 +29,16 @@ int main()
     for (int i = 0; i < 3; i++)
     {
         // randomize four points
-        Point p1 = Point(rand() % screenWidth, rand() % screenHeight);
-        Point p2 = Point(rand() % screenWidth, rand() % screenHeight);
-        Point p3 = Point(rand() % screenWidth, rand() % screenHeight);
-        Point p4 = Point(rand() % screenWidth, rand() % screenHeight);
+        // Point p1 = Point(rand() % screenWidth, rand() % screenHeight);
+        // Point p2 = Point(rand() % screenWidth, rand() % screenHeight);
+        // Point p3 = Point(rand() % screenWidth, rand() % screenHeight);
+        // Point p4 = Point(rand() % screenWidth, rand() % screenHeight);
 
         // hardcode four points for testing
-        // Point p1 = Point(480, 390);
-        // Point p2 = Point(595, 430);
-        // Point p3 = Point(650, 300);
-        // Point p4 = Point(500, 330);
+        Point p1 = Point(390, 390);
+        Point p2 = Point(430, 430);
+        Point p3 = Point(650, 300);
+        Point p4 = Point(500, 330);
 
         // call addQuadrilateral passing four randomized points
         testScreen.addQuadrilateral<Quadrilateral>(p1, p2, p3, p4, RGBA(255, 0, 0));
@@ -75,5 +75,9 @@ AGENDA:
      - projection?
 
     How are we representing/abstracting the z axis?
+    see youtube video (cracked) we normalize all coords to (-1, 1) range
 
+    IMPLEMENT MATRIX MULTIPLICATION
+
+    IMPLEMENT PERSPECTIVE RPOJECTION
 */
