@@ -1,12 +1,31 @@
 #include "screen.h"
 #include "point.h"
 #include <numeric>
+#include "matmul.h"
 
 int main()
 {
     Screen testScreen;
     int screenWidth = testScreen.WINDOW_WIDTH, screenHeight = testScreen.WINDOW_HEIGHT;
 
+    // test matrix implementation
+    matrix test1(2, 2);
+    test1[0][0] = 1;
+    test1[0][1] = 3;
+    test1[1][0] = 2;
+    test1[1][1] = 2;
+    matrix test2(2, 2);
+    test2[0][0] = 1;
+    test2[0][1] = 3;
+    test2[1][0] = 2;
+    test2[1][1] = 2;
+    test1.print();
+    matrix test3 = test1.multiply(test2);
+    test3.print();
+    matrix test4 = test3.multiply(test1);
+    test4.print();
+
+    
     // Draws random pixels
     // for (int i = 0; i < 250; i++)
     // {
