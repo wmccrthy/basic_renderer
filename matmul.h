@@ -74,13 +74,36 @@ public:
         return data[row * numCols + col]; // Correct index calculation
     }
 
+    bool dimensionsAlign(matrix B)
+    {
+        return B.numCols == this->numCols && B.numRows == this->numRows;
+    }
+
     /*
     Matrix addition
     */
-    void add(matrix B)
+    matrix add(matrix B)
     // entry-wise addition
-    // not sure if dims need to exactly align?
+    // matrix dims need to align for addition
     {
+        if (dimensionsAlign(B))
+        {
+            // entry wise addition
+            matrix product(this->numRows, this->numCols);
+            for (int i = 0; i < this->numRows; i++)
+            {
+                for (int j = 0; j < this->numCols; j++)
+                {
+                    product[i][j] = this->getElement(i, j) + B[i][j];
+                }
+            }
+            return product;
+        }
+        else
+        {
+            std::cout << "invalid dimensions; err";
+            return matrix(0, 0);
+        }
     }
 
     /*

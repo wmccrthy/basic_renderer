@@ -24,8 +24,9 @@ int main()
     test3.print();
     matrix test4 = test3.multiply(test1);
     test4.print();
+    matrix test5 = test4.add(test1);
+    test5.print();
 
-    
     // Draws random pixels
     // for (int i = 0; i < 250; i++)
     // {
