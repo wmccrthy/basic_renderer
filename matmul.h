@@ -84,10 +84,8 @@ public:
     }
 
     /*
-     Matrix multiplication
+    Matrix multiplication
      */
-    // matrix multiply(matrix B)
-    // {
     matrix multiply(matrix B)
     {
         // check dims
@@ -115,6 +113,13 @@ public:
 
         return product;
     }
+
+    /*
+    TO-DO: implement rotate, transform, and other projection/matrix operation methods
+    ...
+
+
+    */
 
     float dotRowCol(int row, matrix B, int col, int dim)
     {
