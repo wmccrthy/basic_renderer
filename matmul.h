@@ -1,5 +1,6 @@
 #include <cstddef>
 #include "iostream"
+#pragma once
 
 // TO-DO: figure out if using template class or float class and remove other (generally clean up)
 
@@ -12,6 +13,10 @@ public:
     int numRows;
     int numCols;
     float *data;
+
+    matrix()
+    {
+    }
 
     matrix(int R, int C)
     {

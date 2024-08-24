@@ -8,6 +8,9 @@ int main()
     Screen testScreen;
     int screenWidth = testScreen.WINDOW_WIDTH, screenHeight = testScreen.WINDOW_HEIGHT;
 
+    Point testPrint = Point(3, 5, 10);
+    testPrint.print();
+    
     // test matrix implementation
     matrix test1(2, 2);
     test1[0][0] = 1;
@@ -26,7 +29,6 @@ int main()
     test4.print();
     matrix test5 = test4.add(test1);
     test5.print();
-
     // Draws random pixels
     // for (int i = 0; i < 250; i++)
     // {
