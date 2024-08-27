@@ -8,9 +8,18 @@ int main()
     Screen testScreen;
     int screenWidth = testScreen.WINDOW_WIDTH, screenHeight = testScreen.WINDOW_HEIGHT;
 
-    Point testPrint = Point(3, 5, 10);
-    testPrint.print();
-    
+    // testing point class
+    Point testPoint3D = Point(3, 5, 10), testPoint2D = Point(1, 6);
+    testPoint3D.print();
+    testPoint2D.print();
+    matrix testPointVector3D = testPoint3D.getVector(), testPointVector2D = testPoint2D.getVector();
+    testPointVector2D.print();
+    testPointVector3D.print();
+    matrix transposeTest = testPointVector3D.transpose();
+    transposeTest.print();
+    testPointVector3D.multiply(transposeTest).print();
+    transposeTest.multiply(testPointVector3D).print();
+
     // test matrix implementation
     matrix test1(2, 2);
     test1[0][0] = 1;
@@ -29,6 +38,8 @@ int main()
     test4.print();
     matrix test5 = test4.add(test1);
     test5.print();
+    matrix test6 = test5.multiply(testPointVector2D);
+    test6.print();
     // Draws random pixels
     // for (int i = 0; i < 250; i++)
     // {

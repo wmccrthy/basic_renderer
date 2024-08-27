@@ -1,5 +1,6 @@
 // simple Point class that holds x, y coordinates
 #include "color.h"
+#include <optional>
 #include "matmul.h"
 #pragma once
 
@@ -13,7 +14,9 @@ Point has:
 struct Point
 {
 public:
-    float x, y, z;
+    float x, y;
+    std::optional<float> z;
+
     RGBA color = RGBA(255.0f, 255.0f, 255.0f);
 
     Point(float xCoord, float yCoord, RGBA c = RGBA(255.0f, 255.0f, 255.0f))
@@ -36,18 +39,18 @@ public:
         matrix pointVector;
         if (isAffine)
         {
-            pointVector = matrix(1, 4);
-            pointVector.addElement(3, 0, 1); // affine point
+            pointVector = z ? matrix(4, 1) : matrix(3, 1);
+            pointVector.addElement(pointVector.numRows - 1, 0, 1); // affine point
         }
         else
         {
-            pointVector = matrix(1, 3);
+            pointVector = z ? matrix(3, 1) : matrix(2, 1);
         }
         pointVector.addElement(0, 0, x);
-        pointVector.addElement(0, 1, y);
+        pointVector.addElement(1, 0, y);
         if (z)
         {
-            pointVector.addElement(0, 2, z);
+            pointVector.addElement(2, 0, *z);
         }
         return pointVector;
     }
@@ -56,11 +59,11 @@ public:
     {
         if (z)
         {
-            std::cout << "(" + std::to_string(x) + ", " + std::to_string(y) + ", " + std::to_string(z) + ")";
+            std::cout << "(" + std::to_string(x) + ", " + std::to_string(y) + ", " + std::to_string(*z) + ")\n";
         }
         else
         {
-            std::cout << "(" + std::to_string(x) + "," + std::to_string(y) + ")";
+            std::cout << "(" + std::to_string(x) + "," + std::to_string(y) + ")\n";
         }
     }
 

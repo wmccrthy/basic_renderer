@@ -231,46 +231,27 @@ public:
     }
 };
 
-
 class Cube : public Quadrilateral
 {
     // idea is we have 8 vertices and 6 faces
-    // we want to apply transformations and then points are ready to draw 
+    // we want to apply transformations and then points are ready to draw
     // follow same convention where we have a points to draw vector for the class
     // this vector is added to screen points to draw vector that is rendered at runtime
     Point vertices[8];
     Quadrilateral faces[6];
 
-    // we populate matrices w/ 3d points 
+    Cube(Point center, float size)
+    {
+        // Define the 8 vertices of the cube based on the center and size
+        // Define the 6 faces using these vertices
+    }
+
+    // we populate matrices w/ 3d points
     // then we perform matrix multiplication to transform and projct 3d points -> 2d
     // then we add 2d points to vector of points to draw
-
-    /*
-    implement
-    */
-    void translate()
-    {
-
-    }
-
-    /*
-    implement
-    */
-    void scale()
-    {
-
-    }
-
-    /*
-    implement
-    */
-    void rotate()
-    {
-
-    }
 };
 
-// TO-DO: 
+// TO-DO:
 // implement:
 //  - rotation
 //  - scaling

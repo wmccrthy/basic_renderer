@@ -3,7 +3,6 @@
 #pragma once
 
 // TO-DO: figure out if using template class or float class and remove other (generally clean up)
-
 /*
 2d float matrix class;
 */
@@ -143,6 +142,23 @@ public:
     }
 
     /*
+    Matrix transpose
+    */
+    matrix transpose()
+    {
+        // transpose will have swapped dims and swapped vals entry (i, j) is now (j, i)
+        matrix thisTranspose(this->numCols, this->numRows);
+        for (int i = 0; i < this->numRows; i++)
+        {
+            for (int j = 0; j < this->numCols; j++)
+            {
+                thisTranspose[j][i] = this->getElement(i, j);
+            }
+        }
+        return thisTranspose;
+    }
+
+    /*
     TO-DO: implement rotate, transform, and other projection/matrix operation methods
     ...
 
@@ -171,7 +187,8 @@ public:
             {
                 std::cout << (*this)[i][j] << " ";
             }
-            std::cout << std::endl;
+            std::cout << "\n";
+            // std::cout << std::endl;
         }
         std::cout << "\n";
     }
