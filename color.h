@@ -7,7 +7,6 @@ struct RGBA
     RGBA(float R, float G, float B, float A = 255)
     {
         r = R, g = G, b = B, a = A;
-        // this->print();
     }
 
     void print()

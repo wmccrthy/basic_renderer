@@ -20,15 +20,17 @@ namespace transformations
     }
 
     /*
-    scale is straightforward enough; multiply each point by scale matrix (3x3 where each vector is [scaleX, 0, 0][0, scaleY, 0][0 0, scaleZ])
+    scale is straightforward enough; multiply each point by scale matrix (3x3 where each vector is [scaleX, 0, 0][0, scaleY, 0][0 0, scaleZ]) 
     */
     void scale()
     {
-
+        
     }
 
     /*
-    implement
+    rotate method 
+    takes in matrix and rotation values (by axis);
+    creates rotation matrix using given values and multiplies input matrix by rotation matrix
     */
     void rotate()
     {
@@ -36,7 +38,7 @@ namespace transformations
     }
 
     /*
-    implement projection
+    implement projection (only for 3D)
     */ 
     void project()
     {

@@ -15,6 +15,8 @@ public:
 
     matrix()
     {
+        numRows = 0, numCols = 0;
+        data = nullptr;
     }
 
     matrix(int R, int C)

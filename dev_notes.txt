@@ -1,0 +1,21 @@
+Creating a dev log for this project to track where it's at and my plans/ideas;
+
+As of today (8/29/24), we have:
+
+- working cube class w/ rotation transformation working (can render 3d)
+- point, line, quadrilateral classes all working 
+- matrix class w/ multiplication and other matrix ops working
+- color working for all shapes
+
+ideas for now/needed improvements:
+
+- refactor Screen class; specifically how points are drawn to screen:
+    - we don't want to have to manually clear/update points that we draw at each frame
+    - instead, could we have a vector of shapes that are currently in the scene (this would require a Shape class that parent's all more specifically defined shapes)
+    - at each frame, we loop thru vector of shapes and render their points
+    - that way, when a shape is updated (transformed), we don't have to do any additional work on the Screen side of things
+
+- add method for rotating cuboid around centroid (rather than just rotating in space) DONE
+    - maybe it makes sense to add transformation methods to Point class?? think about this; put pen to paper and plan
+
+- add additional constructor to rectangle/square class that takes center and length/width as params; then defines four paints based on these params

@@ -77,13 +77,29 @@ int main()
         testScreen.addQuadrilateral<Quadrilateral>(p1, p2, p3, p4, RGBA(255, 0, 0));
         testScreen.addQuadrilateral<Rectangle>(p1, p2, p3, p4, RGBA(0, 255, 0));
         testScreen.addQuadrilateral<Square>(p1, p2, p3, p4, RGBA(0, 0, 255));
+
+        // testScreen.addCuboid<Cuboid>(Point(500, 500, 500), 100, 100, 100);
     }
+
+    // test adding cuboid 
+    Cuboid testCuboid = Cuboid(Point(500, 500, 500), 100, 100, 100, RGBA(255, 0, 0));
+    Cuboid testCuboid2 = Cuboid(Point(300, 300, 300), 50, 50, 75, RGBA(200, 255, 100));
+    Cuboid testCuboid3 = Cuboid(Point(300, 700, 500), 40, 60, 80);
 
     while (true)
     {
+        // test rotating cuboids
+        testScreen.clearPoints();
+        testCuboid.rotate(.05, .05, .05);
+        testScreen.updateCuboid(testCuboid);
+        testCuboid2.rotate(0.02, 0.02, 0.01);
+        testScreen.updateCuboid(testCuboid2);
+        testCuboid3.rotate(0.01, -0.04, 0.01);
+        testScreen.updateCuboid(testCuboid3);
+
         testScreen.displayScreen();
         testScreen.input();
-        SDL_Delay(250);
+        SDL_Delay(35);
     }
     return 0;
 }

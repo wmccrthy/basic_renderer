@@ -31,9 +31,8 @@ public:
     */
     Quadrilateral(Point p1, Point p2, Point p3, Point p4, RGBA c = RGBA(255, 255, 255))
     {
-        // this->findCorners(p1, p2, p3, p4);
-        printf("quad constructing");
-        c.print();
+        // printf("quad constructing");
+        // c.print();
         color = c;
         this->fillLines(p1, p2, p3, p4);
         this->getPointsToDraw();
@@ -173,7 +172,7 @@ public:
     Square(Point p1, Point p2, Point p3, Point p4, RGBA c = RGBA(255, 255, 255), bool needsForm = true)
     {
         color = c;
-        // properly assign passed points to their corners
+        // properly assign passed points to their corners (we don't need form if we initialize square w/ four points that already respect square properties)
         if (needsForm)
         {
             this->findCorners(p1, p2, p3, p4);
@@ -231,28 +230,148 @@ public:
     }
 };
 
-class Cube : public Quadrilateral
+class Cuboid // start with cube for testing 3d stuff;
 {
     // idea is we have 8 vertices and 6 faces
     // we want to apply transformations and then points are ready to draw
     // follow same convention where we have a points to draw vector for the class
     // this vector is added to screen points to draw vector that is rendered at runtime
+public:
+    Point centroid;
     Point vertices[8];
-    Quadrilateral faces[6];
+    std::vector<Line> vertexConnections;
+    std::vector<Point> pointsToDraw;
+    RGBA color = RGBA(255, 255, 255);
 
-    Cube(Point center, float size)
-    {
-        // Define the 8 vertices of the cube based on the center and size
-        // Define the 6 faces using these vertices
+    Cuboid(Point center, float length, float height, float width, RGBA c = RGBA(255, 255, 255))
+    {  
+        centroid = center;
+        color = c;
+        // Define the 8 vertices of the cube based on the center and size (FOR NOW USE HARD-CODED Z VALUE FOR TESTING)
+        // length corresponds to X distance between faces
+        // height corresponds to Y distance bw faces
+        // width corresponds to Z distance bw faces
+
+        // Define the 8 vertices
+        vertices[0] = Point(center.x - length / 2, center.y - height / 2, center.z.value_or(0) - width / 2, c);
+        vertices[1] = Point(center.x + length / 2, center.y - height / 2, center.z.value_or(0) - width / 2, c);
+        vertices[2] = Point(center.x + length / 2, center.y + height / 2, center.z.value_or(0) - width / 2, c);
+        vertices[3] = Point(center.x - length / 2, center.y + height / 2, center.z.value_or(0) - width / 2, c);
+        vertices[4] = Point(center.x - length / 2, center.y - height / 2, center.z.value_or(0) + width / 2, c);
+        vertices[5] = Point(center.x + length / 2, center.y - height / 2, center.z.value_or(0) + width / 2, c);
+        vertices[6] = Point(center.x + length / 2, center.y + height / 2, center.z.value_or(0) + width / 2, c);
+        vertices[7] = Point(center.x - length / 2, center.y + height / 2, center.z.value_or(0) + width / 2, c);
+
+        // Initialize the lines connecting the vertices
+        fillLines();
     }
 
-    // we populate matrices w/ 3d points
-    // then we perform matrix multiplication to transform and projct 3d points -> 2d
-    // then we add 2d points to vector of points to draw
+    void fillLines()
+    {
+        // We don't need faces, just lines connecting each point (these should be reinitialied anytime we update points)
+
+        vertexConnections.clear(); // remove previous lines (if we're calling this method it means vertices have updated; as such, we want to update lines)
+
+        // Connect bottom face vertices
+        vertexConnections.push_back(Line(vertices[0], vertices[1], color));
+        vertexConnections.push_back(Line(vertices[1], vertices[2], color));
+        vertexConnections.push_back(Line(vertices[2], vertices[3], color));
+        vertexConnections.push_back(Line(vertices[3], vertices[0], color));
+
+        // Connect top face vertices
+        vertexConnections.push_back(Line(vertices[4], vertices[5], color));
+        vertexConnections.push_back(Line(vertices[5], vertices[6], color));
+        vertexConnections.push_back(Line(vertices[6], vertices[7], color));
+        vertexConnections.push_back(Line(vertices[7], vertices[4], color));
+
+        // Connect top face to bottom face
+        vertexConnections.push_back(Line(vertices[0], vertices[4], color));
+        vertexConnections.push_back(Line(vertices[1], vertices[5], color));
+        vertexConnections.push_back(Line(vertices[2], vertices[6], color));
+        vertexConnections.push_back(Line(vertices[3], vertices[7], color));
+    }
+
+    void getPointsToDraw()
+    {
+        for (auto &l : this->vertexConnections)
+        {
+            for (auto &p : l.pointsToDraw)
+            {
+                pointsToDraw.emplace_back(p);
+            }
+        }
+    }
+
+    matrix xRotationMatrix(float xRot)
+    {
+        matrix rotX = matrix(4, 4);
+        rotX.addElement(0, 0, 1);
+        rotX.addElement(1, 1, cos(xRot));
+        rotX.addElement(1, 2, -sin(xRot));
+        rotX.addElement(2, 1, sin(xRot));
+        rotX.addElement(2, 2, cos(xRot));
+        rotX.addElement(3, 3, 1);
+        return rotX;
+    }
+
+    matrix yRotationMatrix(float yRot)
+    {
+        matrix rotY = matrix(4, 4);
+        rotY.addElement(0, 0, cos(yRot));
+        rotY.addElement(0, 2, sin(yRot));
+        rotY.addElement(1, 1, 1);
+        rotY.addElement(2, 0, -sin(yRot));
+        rotY.addElement(2, 2, cos(yRot));
+        rotY.addElement(3, 3, 1);
+        return rotY;
+    }
+
+    matrix zRotationMatrix(float zRot)
+    {
+        matrix rotZ = matrix(4, 4);
+        rotZ.addElement(0, 0, cos(zRot));
+        rotZ.addElement(0, 1, -sin(zRot));
+        rotZ.addElement(1, 0, sin(zRot));
+        rotZ.addElement(1, 1, cos(zRot));
+        rotZ.addElement(2, 2, 1);
+        rotZ.addElement(3, 3, 1);
+        return rotZ;
+    }
+    
+    void rotate(float xRot, float yRot, float zRot, bool aroundCentroid = true)
+    {
+        // Rotation matrices
+        matrix rotX = xRotationMatrix(xRot);
+
+        matrix rotY = yRotationMatrix(yRot);
+
+        matrix rotZ = zRotationMatrix(zRot);
+
+        // Composite rotation matrix (Rz * Ry * Rx)
+        // multiply matrices in this order to ensure we scale z first, then y, then x (then we can just plot x,y but shape will look 3 dimensional)
+        matrix rotationMatrix = rotZ.multiply(rotY).multiply(rotX);
+
+        // Rotate each vertex
+        // modify value of each point in vertices by mutliplying w/ rotation matrix
+        for (int i = 0; i < 8; i++)
+        {
+            // if rotating around centroid, ensure we translate before and after rotation
+            vertices[i].translate(-centroid.x, -centroid.y, -centroid.z.value());
+
+            matrix pointVector = vertices[i].getVector(true); // Get affine point
+
+            matrix rotatedVector = rotationMatrix.multiply(pointVector);
+            Point rotatedPoint = vertices[i].getPointFromVector(rotatedVector);
+            vertices[i] = rotatedPoint;
+            vertices[i].translate(centroid.x, centroid.y, centroid.z.value());
+        }
+        
+        // we need to refill lines after rotating or any transformation operation
+        fillLines();
+    }
 };
 
 // TO-DO:
 // implement:
-//  - rotation
 //  - scaling
 //  - translation

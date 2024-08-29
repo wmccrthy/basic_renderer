@@ -1,6 +1,7 @@
 // simple Point class that holds x, y coordinates
 #include "color.h"
 #include <optional>
+#include "math.h"
 #include "matmul.h"
 #pragma once
 
@@ -39,20 +40,43 @@ public:
         matrix pointVector;
         if (isAffine)
         {
-            pointVector = z ? matrix(4, 1) : matrix(3, 1);
+            pointVector = z.has_value() ? matrix(4, 1) : matrix(3, 1);
             pointVector.addElement(pointVector.numRows - 1, 0, 1); // affine point
         }
         else
         {
-            pointVector = z ? matrix(3, 1) : matrix(2, 1);
+            pointVector = z.has_value() ? matrix(3, 1) : matrix(2, 1);
         }
         pointVector.addElement(0, 0, x);
         pointVector.addElement(1, 0, y);
-        if (z)
+        if (z.has_value())
         {
-            pointVector.addElement(2, 0, *z);
+            pointVector.addElement(2, 0, z.value());
         }
         return pointVector;
+    }
+
+    // method expects more rows than cols (column vector) as point
+    // if more cols than rows, will take transpose
+    Point getPointFromVector(matrix vector)
+    {
+        int r = vector.numRows, c = vector.numCols;
+        if (c > r)
+        {
+            vector = vector.transpose();
+        }
+        Point convertedPoint = vector.numRows > 3 ? Point(vector[0][0], vector[1][0], vector[2][0]) : Point(vector[0][0], vector[1][0]);
+        return convertedPoint;
+    }
+
+    void translate(float xTrans, float yTrans, float zTrans)
+    {
+        x += xTrans;
+        y += yTrans;
+        if (z.has_value())
+        {
+            z = z.value() + zTrans;
+        }
     }
 
     void print()

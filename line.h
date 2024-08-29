@@ -36,8 +36,8 @@ public:
         point1 = p1;
         point2 = p2;
         point1.color = c, point2.color = c;
-        printf("constructing line");
-        c.print();
+        // printf("constructing line");
+        // c.print();
         color = c;
         this->getPointsToDraw();
     }

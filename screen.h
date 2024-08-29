@@ -16,6 +16,7 @@ class Screen
 public:
     const int WINDOW_WIDTH = 900;
     const float WINDOW_HEIGHT = 900;
+    // how do we model 3rd (Z) dimension here?
 
     void addPixel(float x, float y)
     {
@@ -31,9 +32,22 @@ public:
     template <class Q>
     void addQuadrilateral(Point p1, Point p2, Point p3, Point p4, RGBA color = RGBA(255, 255, 255))
     {
-        color.print();
         Q quad = Q(p1, p2, p3, p4, color);
         this->addPointsToRender<Q>(quad);
+    }
+
+    template <class Q>
+    void addCuboid(Point center, float length, float height, float width)
+    {
+        Q cuboid = Q(center, length, height, width);
+        cuboid.getPointsToDraw();
+        this->addPointsToRender<Q>(cuboid);
+    }
+
+    void updateCuboid(Cuboid cuboid)
+    {
+        cuboid.getPointsToDraw();
+        this->addPointsToRender<Cuboid>(cuboid);
     }
 
     template <class Q>
