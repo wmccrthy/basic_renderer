@@ -51,6 +51,12 @@ public:
         return dy / dx;
     }
 
+    // Return the direction vector of the line (when it is bw two 3d points)
+    Point getDirectionVector()
+    {
+        return Point(point2.x - point1.x, point2.y - point1.y, point2.z.value_or(1) - point1.z.value_or(1));
+    }
+
     /* use pythag theorem to get line length
     we use:
          - difference in x1 and x2 (call this side a)
@@ -61,6 +67,11 @@ public:
     {
         float dx = point2.x - point1.x;
         float dy = point2.y - point1.y;
+        if (point1.z.has_value() && point2.z.has_value())
+        {
+            float dz = point2.z.value() - point1.z.value();
+            return std::sqrt(dx * dx + dy * dy + dz * dz);
+        }
         return std::sqrt(dx * dx + dy * dy);
     }
 
@@ -79,24 +90,27 @@ public:
     {
         float lineLength = this->getLength();
         float angle = this->getArcTan();
+        Point directionVector = this->getDirectionVector();
+
         pointsToDraw.emplace_back(point1);
-        // debugging output
-        // std::cout << "angle: " + std::to_string(angle) + "\n";
-        // std::cout << "point1: " + std::to_string(point1.x) + "," + std::to_string(point1.y) + "\n";
 
         // we want to draw from point1 to point 2
-        for (int i = 0; i < lineLength; i++)
+        for (int i = 1; i < lineLength; i++)
         {
-            Point nextPoint = this->getNextPointOnLine(angle, i);
-            float x = nextPoint.x;
-            float y = nextPoint.y;
+            Point nextPoint;
+            if (point1.z.has_value() && point2.z.has_value())
+            {
+                nextPoint = this->getNextPointOnLine3D(directionVector, i);
+            }
+            else
+            {
+                nextPoint = this->getNextPointOnLine(angle, i);
+                float x = nextPoint.x;
+                float y = nextPoint.y;
+            }
             pointsToDraw.emplace_back(nextPoint);
-            // debugging output
-            // std::cout << "point" + std::to_string(i + 2) + ": " + std::to_string(x) + "," + std::to_string(y) + "\n";
         }
         pointsToDraw.emplace_back(point2);
-        // debugging output
-        // std::cout << "last point: " + std::to_string(point2.x) + "," + std::to_string(point2.y);
     }
 
     Point getNextPointOnLine(float angle, int iter)
@@ -111,6 +125,18 @@ public:
         /*
         Why couldn't we have just used y = mx + b for this??
         */
+        return nextPoint;
+    }
+
+    // Calculate the next point along the line in 3D space
+    Point getNextPointOnLine3D(Point direction, int iter)
+    {
+        Point nextPoint;
+        nextPoint.x = point1.x + direction.x * iter / getLength();
+        nextPoint.y = point1.y + direction.y * iter / getLength();
+        nextPoint.z = point1.z.value_or(1) + direction.z.value_or(1) * iter / getLength();
+        nextPoint.color = color;
+
         return nextPoint;
     }
 };

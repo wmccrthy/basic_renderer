@@ -11,12 +11,12 @@ class Screen
     SDL_Window *window;     // pointer to the window
     SDL_Renderer *renderer; // pointer to renderer
     std::vector<Point> points;
-    std::vector<Line> lines;
+    std::vector<std::unique_ptr<Shape>> shapesInScene; // vector of shapes currently on the Screen; we loop thru these shapes at every frame and render their points
 
 public:
     const int WINDOW_WIDTH = 900;
     const float WINDOW_HEIGHT = 900;
-    // how do we model 3rd (Z) dimension here?
+    const float FOV = 60.0f;
 
     void addPixel(float x, float y)
     {
@@ -59,6 +59,41 @@ public:
         }
     }
 
+    // void addShape(std::unique_ptr<Shape> s)
+    // {
+    //     shapesInScene.emplace_back(std::move(s));
+    // }
+
+    // void clearShapes()
+    // {
+    //     shapesInScene.clear();
+    // }
+
+    // void renderShapes()
+    // {
+    //     for (const auto &shape : shapesInScene)
+    //     {
+    //         renderShape(*shape);
+    //     }
+    // }
+
+    // void renderShape(Shape &s)
+    // {
+    //     s.getPointsToDraw();
+    //     for (const auto &p : s.pointsToDraw)
+    //     {
+    //         renderPoint(p);
+    //     }
+    // }
+
+    void renderPoint(Point point)
+    {
+        RGBA color = point.color;
+        SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a); // set draw color to white
+        point.projectPerspective(FOV, WINDOW_WIDTH, WINDOW_HEIGHT);
+        SDL_RenderDrawPointF(renderer, point.x, point.y);
+    }
+
     void clearPoints()
     {
         points.clear();
@@ -73,13 +108,12 @@ public:
         SDL_RenderClear(renderer); // renders black background
 
         SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255); // set draw color to white
+
         for (auto &point : points)
         {
-            RGBA color = point.color;
-            // color.print();
-            SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a); // set draw color to white
-            SDL_RenderDrawPointF(renderer, point.x, point.y);                     // draw all points in our point vector
+            renderPoint(point);
         }
+
         SDL_RenderPresent(renderer); // actually show screen
     }
     // NOTE: perhaps instead of drawing all points to screen at once, we can have methods that draw single shapes at a time

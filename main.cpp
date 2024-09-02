@@ -2,6 +2,7 @@
 #include "point.h"
 #include <numeric>
 #include "matmul.h"
+#include <random>
 
 int main()
 {
@@ -81,24 +82,46 @@ int main()
         // testScreen.addCuboid<Cuboid>(Point(500, 500, 500), 100, 100, 100);
     }
 
-    // test adding cuboid 
-    Cuboid testCuboid = Cuboid(Point(500, 500, 500), 100, 100, 100, RGBA(255, 0, 0));
-    Cuboid testCuboid2 = Cuboid(Point(300, 300, 300), 50, 50, 75, RGBA(200, 255, 100));
-    Cuboid testCuboid3 = Cuboid(Point(300, 700, 500), 40, 60, 80);
+    // Test adding random cuboids
+    std::vector<Cuboid> cuboids;
+    for (int i = 0; i < 10; i++)
+    {
+        cuboids.emplace_back(Cuboid(
+            Point(rand() % screenWidth, rand() % screenHeight, rand() % screenWidth),
+            rand() % 100, rand() % 100, rand() % 100,
+            RGBA(rand() % 255, rand() % 255, rand() % 255)));
+    }
+
+    std::random_device rd;
+    std::default_random_engine generator(rd()); // rd() provides a random seed
+    std::uniform_real_distribution<float> distribution(0.01, 0.1);
+
+    Cuboid specificCuboid = Cuboid(Point(screenWidth / 2, screenHeight / 2, 2000), 100, 100, 100);
+    Cuboid originCuboid = Cuboid(Point(200, 200, 10000), 50, 50, 100);
+    Cuboid originCuboidClose = Cuboid(Point(200, 200, 100), 50, 50, 100);
 
     while (true)
     {
-        // test rotating cuboids
         testScreen.clearPoints();
-        testCuboid.rotate(.05, .05, .05);
-        testScreen.updateCuboid(testCuboid);
-        testCuboid2.rotate(0.02, 0.02, 0.01);
-        testScreen.updateCuboid(testCuboid2);
-        testCuboid3.rotate(0.01, -0.04, 0.01);
-        testScreen.updateCuboid(testCuboid3);
 
-        testScreen.displayScreen();
-        testScreen.input();
+        // Rotate and update points for each random cuboid
+        // for (auto& c : cuboids)
+        // {
+        //     c.rotate(distribution(generator), distribution(generator), distribution(generator));
+        //     testScreen.updateCuboid(c);
+        // }
+
+        // rotate and update points for speciic cuboid
+        specificCuboid.rotate(-0.02, -0.04, 0.00);
+        testScreen.updateCuboid(specificCuboid);
+        originCuboid.rotate(0.04, 0.03, -0.05);
+        testScreen.updateCuboid(originCuboid);
+        originCuboidClose.rotate(0.05, 0.01, -0.02);
+        testScreen.updateCuboid(originCuboidClose);
+
+        testScreen.displayScreen(); // Render the updated screen
+        testScreen.input(); 
+
         SDL_Delay(35);
     }
     return 0;

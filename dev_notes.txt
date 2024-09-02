@@ -14,8 +14,21 @@ ideas for now/needed improvements:
     - instead, could we have a vector of shapes that are currently in the scene (this would require a Shape class that parent's all more specifically defined shapes)
     - at each frame, we loop thru vector of shapes and render their points
     - that way, when a shape is updated (transformed), we don't have to do any additional work on the Screen side of things
+    - this approach is some aids when it comes to pointers and refs; need to keep working on
 
-- add method for rotating cuboid around centroid (rather than just rotating in space) DONE
-    - maybe it makes sense to add transformation methods to Point class?? think about this; put pen to paper and plan
+- add projection for points (so z coord determines how far they are from the viewer and thus scales x/y accordingly)
 
-- add additional constructor to rectangle/square class that takes center and length/width as params; then defines four paints based on these params
+- (INSIGNIFICANT) add additional constructor to rectangle/square class that takes center and length/width as params; then defines four paints based on these params
+
+
+
+Notes as of 9/1
+WORKING NOW
+- cuboid class w/ rotation etc
+- updated other classes (most importantly projection and coordinate normalization working in Point class)
+
+NEXT UP
+- culling (a process of selectively rendering or excluding objects or portions of a scene that are not visible to the player)
+- filling shapes (not just wireframe rendering)
+- lighting (s.t filled shapes are 3d distinguishable)
+- refactor Screen class to optimize rendering flow (longer term, need to read up on this)

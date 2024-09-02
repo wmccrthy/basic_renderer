@@ -7,6 +7,32 @@
 #pragma once
 
 /*
+Super lightweight Shape class to be inherited by all other shape classes
+Only real purpose is so that we can have vector of shapes we want to draw in Screen class
+*/
+class Shape
+{
+public:
+    std::vector<Point> pointsToDraw;
+    Shape()
+    {
+    }
+
+    virtual ~Shape()
+    {
+    }
+
+    virtual void getPointsToDraw() = 0;
+
+    void print()
+    {
+        std::cout << "shape\n";
+    }
+
+};
+
+
+/*
 Quadrilateral has:
     - four points (p1, p2, p3, p4)
     - four lines connecting four points:
@@ -15,11 +41,10 @@ Quadrilateral has:
         - l3(p3, p4)
         - l4(p4, p1)
 */
-class Quadrilateral
+class Quadrilateral : public Shape
 {
 public:
     Line lines[4];
-    std::vector<Point> pointsToDraw;
     RGBA color = RGBA(255, 255, 255);
 
     Quadrilateral()
@@ -54,7 +79,7 @@ public:
         lines[3] = Line(p4, p1, color);
     }
 
-    void getPointsToDraw()
+    void getPointsToDraw() override
     {
         for (auto &l : this->lines)
         {
@@ -230,7 +255,7 @@ public:
     }
 };
 
-class Cuboid // start with cube for testing 3d stuff;
+class Cuboid : public Shape // start with cube for testing 3d stuff;
 {
     // idea is we have 8 vertices and 6 faces
     // we want to apply transformations and then points are ready to draw
@@ -240,7 +265,6 @@ public:
     Point centroid;
     Point vertices[8];
     std::vector<Line> vertexConnections;
-    std::vector<Point> pointsToDraw;
     RGBA color = RGBA(255, 255, 255);
 
     Cuboid(Point center, float length, float height, float width, RGBA c = RGBA(255, 255, 255))
@@ -291,7 +315,7 @@ public:
         vertexConnections.push_back(Line(vertices[3], vertices[7], color));
     }
 
-    void getPointsToDraw()
+    void getPointsToDraw() override
     {
         for (auto &l : this->vertexConnections)
         {
@@ -357,9 +381,7 @@ public:
         {
             // if rotating around centroid, ensure we translate before and after rotation
             vertices[i].translate(-centroid.x, -centroid.y, -centroid.z.value());
-
             matrix pointVector = vertices[i].getVector(true); // Get affine point
-
             matrix rotatedVector = rotationMatrix.multiply(pointVector);
             Point rotatedPoint = vertices[i].getPointFromVector(rotatedVector);
             vertices[i] = rotatedPoint;
