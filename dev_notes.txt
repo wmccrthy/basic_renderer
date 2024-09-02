@@ -26,9 +26,12 @@ Notes as of 9/1
 WORKING NOW
 - cuboid class w/ rotation etc
 - updated other classes (most importantly projection and coordinate normalization working in Point class)
+- new triangle class
 
 NEXT UP
+- extend Cuboid s.t it can be made up of triangles (for easier time w/ culling and such)
 - culling (a process of selectively rendering or excluding objects or portions of a scene that are not visible to the player)
+- clean up old comments and make new clear comments
 - filling shapes (not just wireframe rendering)
 - lighting (s.t filled shapes are 3d distinguishable)
 - refactor Screen class to optimize rendering flow (longer term, need to read up on this)

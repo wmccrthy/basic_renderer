@@ -79,7 +79,6 @@ int main()
         testScreen.addQuadrilateral<Rectangle>(p1, p2, p3, p4, RGBA(0, 255, 0));
         testScreen.addQuadrilateral<Square>(p1, p2, p3, p4, RGBA(0, 0, 255));
 
-        // testScreen.addCuboid<Cuboid>(Point(500, 500, 500), 100, 100, 100);
     }
 
     // Test adding random cuboids
@@ -96,9 +95,12 @@ int main()
     std::default_random_engine generator(rd()); // rd() provides a random seed
     std::uniform_real_distribution<float> distribution(0.01, 0.1);
 
-    Cuboid specificCuboid = Cuboid(Point(screenWidth / 2, screenHeight / 2, 2000), 100, 100, 100);
-    Cuboid originCuboid = Cuboid(Point(200, 200, 10000), 50, 50, 100);
+    Cuboid specificCuboid = Cuboid(Point(screenWidth / 2, screenHeight / 2, 2000), 300, 300, 300);
+    Cuboid originCuboid = Cuboid(Point(200, 200, 900), 50, 50, 100);
     Cuboid originCuboidClose = Cuboid(Point(200, 200, 100), 50, 50, 100);
+
+    // TESTING TRIANGLE CLASS
+    Triangle testTri = Triangle(Point(690, 10), Point(690, 50), Point(650, 10));
 
     while (true)
     {
@@ -112,12 +114,13 @@ int main()
         // }
 
         // rotate and update points for speciic cuboid
-        specificCuboid.rotate(-0.02, -0.04, 0.00);
+        specificCuboid.rotate(-0.02, -0.04, 0.00, false);
         testScreen.updateCuboid(specificCuboid);
         originCuboid.rotate(0.04, 0.03, -0.05);
         testScreen.updateCuboid(originCuboid);
         originCuboidClose.rotate(0.05, 0.01, -0.02);
         testScreen.updateCuboid(originCuboidClose);
+        testScreen.addPointsToRender<Triangle>(testTri);
 
         testScreen.displayScreen(); // Render the updated screen
         testScreen.input(); 

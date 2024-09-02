@@ -31,6 +31,48 @@ public:
 
 };
 
+/*
+Triangle has:
+    - three points (define in clockwise order)
+    - three lines
+*/
+class Triangle : public Shape
+{
+public:
+    Line lines[3];
+    RGBA color = RGBA(255, 255, 255);
+
+    Triangle()
+    {
+    }
+
+    Triangle(Point p1, Point p2, Point p3, RGBA c = RGBA(255, 255, 255))
+    {
+        color = c;
+        this->fillLines(p1, p2, p3);
+        this->getPointsToDraw();
+    }
+
+    void fillLines(Point p1, Point p2, Point p3)
+    {
+        lines[0] = Line(p1, p2);
+        lines[1] = Line(p2, p3);
+        lines[2] = Line(p3, p1);
+    }
+
+    void getPointsToDraw() override
+    {
+        for (auto &l : this->lines)
+        {
+            // std::cout << "line length" + std::to_string(l.getLength()) + "\n";
+            for (auto &p : l.pointsToDraw)
+            { // i'd imagine there can/may be redundant lines if we do this??? best practice to use a set to avoid dupes
+                pointsToDraw.emplace_back(p);
+            }
+        }
+    }
+};
+
 
 /*
 Quadrilateral has:
@@ -265,6 +307,8 @@ public:
     Point centroid;
     Point vertices[8];
     std::vector<Line> vertexConnections;
+    // need some data structure to hold cuboid faces if I want to implement culling properly
+
     RGBA color = RGBA(255, 255, 255);
 
     Cuboid(Point center, float length, float height, float width, RGBA c = RGBA(255, 255, 255))
@@ -321,6 +365,7 @@ public:
         {
             for (auto &p : l.pointsToDraw)
             {
+                // 
                 pointsToDraw.emplace_back(p);
             }
         }
@@ -397,3 +442,4 @@ public:
 // implement:
 //  - scaling
 //  - translation
+//  - add Triangle class (should be super straightforward)
