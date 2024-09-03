@@ -16,7 +16,7 @@ class Screen
 public:
     const int WINDOW_WIDTH = 900;
     const float WINDOW_HEIGHT = 900;
-    const float FOV = 60.0f;
+    const float FOV = 90.0f;
 
     void addPixel(float x, float y)
     {

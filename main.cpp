@@ -95,7 +95,7 @@ int main()
     std::default_random_engine generator(rd()); // rd() provides a random seed
     std::uniform_real_distribution<float> distribution(0.01, 0.1);
 
-    Cuboid specificCuboid = Cuboid(Point(screenWidth / 2, screenHeight / 2, 2000), 300, 300, 300);
+    Cuboid specificCuboid = Cuboid(Point(screenWidth / 2, screenHeight / 2, 0), 50, 50, 300);
     Cuboid originCuboid = Cuboid(Point(200, 200, 900), 50, 50, 100);
     Cuboid originCuboidClose = Cuboid(Point(200, 200, 100), 50, 50, 100);
 
@@ -114,7 +114,7 @@ int main()
         // }
 
         // rotate and update points for speciic cuboid
-        specificCuboid.rotate(-0.02, -0.04, 0.00, false);
+        specificCuboid.rotate(0.02, 0.01, 0.01);
         testScreen.updateCuboid(specificCuboid);
         originCuboid.rotate(0.04, 0.03, -0.05);
         testScreen.updateCuboid(originCuboid);

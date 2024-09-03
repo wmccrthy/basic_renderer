@@ -28,7 +28,6 @@ public:
     {
         std::cout << "shape\n";
     }
-
 };
 
 /*
@@ -72,7 +71,6 @@ public:
         }
     }
 };
-
 
 /*
 Quadrilateral has:
@@ -297,6 +295,76 @@ public:
     }
 };
 
+/*
+Can we use the Rectangle class to function as faces for Cuboids?
+We could indeed but a face class will be more lightweight than using the rectangle class; also potentially more extensible
+*/
+struct Face
+{
+public:
+    std::vector<Point> vertices;
+    std::vector<Line> lines;
+
+    Face()
+    {
+    }
+
+    Face(Point p1, Point p2, Point p3)
+    {
+        vertices.emplace_back(p1);
+        vertices.emplace_back(p2);
+        vertices.emplace_back(p3);
+
+        fillLines();
+    }
+
+    Face(Point p1, Point p2, Point p3, Point p4)
+    {
+        vertices.emplace_back(p1);
+        vertices.emplace_back(p2);
+        vertices.emplace_back(p3);
+        vertices.emplace_back(p4);
+
+        fillLines();
+    }
+
+    Point computeNormal()
+    {
+        // compute normal of the face using it's vertices (we only need three points to compute normal of plane/face)
+        Point vectorA = Line(vertices[0], vertices[1]).getDirectionVector();
+        Point vectorB = Line(vertices[0], vertices[2]).getDirectionVector();
+        Point normal = vectorA.crossProduct(vectorB);
+        normal.normalize();
+
+        // render normal for debugging; the normal line should be from vertex 1 to the point at normal
+
+        // std::cout << "Normal:\n";
+        // normal.print();
+        return normal;
+    }
+
+    Point computeCentroid() {
+        float x = 0, y = 0, z = 0;
+        for (const auto& vertex : vertices) {
+            x += vertex.x;
+            y += vertex.y;
+            z += vertex.z.value_or(0);
+        }
+        size_t n = vertices.size();
+        return Point(x / n, y / n, z / n);
+    }
+
+    void fillLines() // each face should have lines that connect it; will be either 3 or 4 (for now)
+    {
+        for (int i = 0; i < vertices.size() - 1; i++)
+        {
+            lines.emplace_back(Line(vertices[i], vertices[i + 1]));
+        }
+        // connect final vertex w/ first vertex
+        lines.emplace_back(Line(vertices[vertices.size() - 1], vertices[0]));
+    }
+};
+
 class Cuboid : public Shape // start with cube for testing 3d stuff;
 {
     // idea is we have 8 vertices and 6 faces
@@ -308,11 +376,12 @@ public:
     Point vertices[8];
     std::vector<Line> vertexConnections;
     // need some data structure to hold cuboid faces if I want to implement culling properly
+    Face faces[6];
 
     RGBA color = RGBA(255, 255, 255);
 
     Cuboid(Point center, float length, float height, float width, RGBA c = RGBA(255, 255, 255))
-    {  
+    {
         centroid = center;
         color = c;
         // Define the 8 vertices of the cube based on the center and size (FOR NOW USE HARD-CODED Z VALUE FOR TESTING)
@@ -334,10 +403,30 @@ public:
         fillLines();
     }
 
+    void fillFaces()
+    {
+        // fill faces based on vertices 
+        // Bottom face (vertices[0], vertices[1], vertices[2], vertices[3])
+        faces[0] = Face(vertices[0], vertices[3], vertices[2], vertices[1]);
+
+        // Top face (vertices[4], vertices[5], vertices[6], vertices[7])
+        faces[1] = Face(vertices[4], vertices[5], vertices[6], vertices[7]);
+
+        // Front face (vertices[0], vertices[1], vertices[5], vertices[4])
+        faces[2] = Face(vertices[0], vertices[1], vertices[5], vertices[4]);
+
+        // Back face (vertices[2], vertices[3], vertices[7], vertices[6])
+        faces[3] = Face(vertices[2], vertices[3], vertices[7], vertices[6]);
+
+        // Left face (vertices[3], vertices[0], vertices[4], vertices[7])
+        faces[4] = Face(vertices[3], vertices[0], vertices[4], vertices[7]);
+
+        // Right face (vertices[1], vertices[2], vertices[6], vertices[5])
+        faces[5] = Face(vertices[1], vertices[2], vertices[6], vertices[5]);
+    }
+
     void fillLines()
     {
-        // We don't need faces, just lines connecting each point (these should be reinitialied anytime we update points)
-
         vertexConnections.clear(); // remove previous lines (if we're calling this method it means vertices have updated; as such, we want to update lines)
 
         // Connect bottom face vertices
@@ -353,19 +442,81 @@ public:
         vertexConnections.push_back(Line(vertices[7], vertices[4], color));
 
         // Connect top face to bottom face
-        vertexConnections.push_back(Line(vertices[0], vertices[4], color));
-        vertexConnections.push_back(Line(vertices[1], vertices[5], color));
-        vertexConnections.push_back(Line(vertices[2], vertices[6], color));
-        vertexConnections.push_back(Line(vertices[3], vertices[7], color));
+        vertexConnections.push_back(Line(vertices[0], vertices[4], color)); // front face
+        vertexConnections.push_back(Line(vertices[1], vertices[5], color)); // front face
+        vertexConnections.push_back(Line(vertices[2], vertices[6], color)); // back face
+        vertexConnections.push_back(Line(vertices[3], vertices[7], color)); // back face
+
+        // I want to associate vertex connections with faces; each face should map to two vertex connections
+        fillFaces();
     }
 
     void getPointsToDraw() override
     {
-        for (auto &l : this->vertexConnections)
+        // working code to get cuboid points
+        // for (auto &l : this->vertexConnections)
+        // {
+        //     for (auto &p : l.pointsToDraw)
+        //     {
+        //         pointsToDraw.emplace_back(p);
+        //     }
+        // }
+
+        // testing faces
+        for (auto &f : this->faces)
         {
-            for (auto &p : l.pointsToDraw)
+            // CULLING here;
+            // seem's like normal is being computed correctly based on the rendered line
+            
+            Point cameraPos = Point(0, 0, -10.0f);
+            Point viewVector = f.computeCentroid();
+            cameraPos.print();
+            viewVector.print();
+            cameraPos.translate(-viewVector.x, -viewVector.y, -viewVector.z.value());
+            cameraPos.print();
+            cameraPos.normalize();
+            viewVector.translate(-cameraPos.x, -cameraPos.y, -cameraPos.z.value());
+            float test = cameraPos.x * f.computeNormal().x + cameraPos.y * f.computeNormal().y + cameraPos.z.value() * f.computeNormal().z.value();
+            matrix shouldCull = cameraPos.getVector().transpose().multiply(f.computeNormal().getVector());
+            shouldCull.print();
+            std::cout << test << "\n";
+            Point faceNormal = f.computeNormal();
+            faceNormal.normalize();
+            // should cull is tripping
+
+
+            if (faceNormal.z < 0)
             {
-                // 
+                for (auto &l : f.lines)
+                {
+                    for (auto &p : l.pointsToDraw)
+                    {
+                        pointsToDraw.emplace_back(p);
+                    }
+                }
+            }
+
+            // Render the normal for debugging
+            // Calculate the centroid of the face as the start point
+            Point normal = f.computeNormal();
+            Point faceCentroid = Point(
+                (f.vertices[0].x + f.vertices[1].x + f.vertices[2].x + f.vertices[3].x) / 4.0f,
+                (f.vertices[0].y + f.vertices[1].y + f.vertices[2].y + f.vertices[3].y) / 4.0f,
+                (f.vertices[0].z.value_or(0) + f.vertices[1].z.value_or(0) + f.vertices[2].z.value_or(0) + f.vertices[3].z.value_or(0)) / 4.0f);
+
+            // End point of the normal (scale the normal for visibility)
+            float normalScale = 10.0f; // Adjust the scale factor as needed
+            Point normalEnd = Point(
+                faceCentroid.x + normal.x * normalScale,
+                faceCentroid.y + normal.y * normalScale,
+                faceCentroid.z.value_or(0) + normal.z.value_or(0) * normalScale);
+
+            // Create a line to represent the normal vector
+            Line normalLine = Line(faceCentroid, normalEnd, RGBA(255, 0, 0)); // Red color for normal
+
+            // Add the normal line's points to draw
+            for (auto &p : normalLine.pointsToDraw)
+            {
                 pointsToDraw.emplace_back(p);
             }
         }
@@ -406,7 +557,7 @@ public:
         rotZ.addElement(3, 3, 1);
         return rotZ;
     }
-    
+
     void rotate(float xRot, float yRot, float zRot, bool aroundCentroid = true)
     {
         // Rotation matrices
@@ -425,14 +576,22 @@ public:
         for (int i = 0; i < 8; i++)
         {
             // if rotating around centroid, ensure we translate before and after rotation
-            vertices[i].translate(-centroid.x, -centroid.y, -centroid.z.value());
+            if (aroundCentroid)
+            {
+                vertices[i].translate(-centroid.x, -centroid.y, -centroid.z.value());
+            }
+
             matrix pointVector = vertices[i].getVector(true); // Get affine point
             matrix rotatedVector = rotationMatrix.multiply(pointVector);
             Point rotatedPoint = vertices[i].getPointFromVector(rotatedVector);
             vertices[i] = rotatedPoint;
-            vertices[i].translate(centroid.x, centroid.y, centroid.z.value());
+
+            if (aroundCentroid)
+            {
+                vertices[i].translate(centroid.x, centroid.y, centroid.z.value());
+            }
         }
-        
+
         // we need to refill lines after rotating or any transformation operation
         fillLines();
     }

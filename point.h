@@ -15,7 +15,7 @@ Point has:
 struct Point
 {
 public:
-    float x, y;
+    double x, y;
     std::optional<float> z;
 
     RGBA color = RGBA(255.0f, 255.0f, 255.0f);
@@ -23,6 +23,7 @@ public:
     float WINDOW_WIDTH = 900.0f;
     float WINDOW_HEIGHT = 900.0f;
     float Z_MAX = 900.0f;
+    float Z_MIN = 0.0f;
 
     Point(float xCoord, float yCoord, RGBA c = RGBA(255.0f, 255.0f, 255.0f))
     {
@@ -86,6 +87,14 @@ public:
         return convertedPoint;
     }
 
+    Point crossProduct(Point otherDirectionVectorPoint)
+    {
+        double newX = y * otherDirectionVectorPoint.z.value() - z.value() * otherDirectionVectorPoint.y;
+        double newY = z.value() * otherDirectionVectorPoint.x - x * otherDirectionVectorPoint.z.value();
+        double newZ = x * otherDirectionVectorPoint.y - y * otherDirectionVectorPoint.x;
+        return Point(newX, newY, newZ);
+    }
+
     void translate(float xTrans, float yTrans, float zTrans)
     {
         x += xTrans;
@@ -101,20 +110,40 @@ public:
         return (coord - minCoord) / (maxCoord - minCoord) * 2.0f - 1.0f;
     }
 
+    /*
+    Normalizes point from screen space
+    */
+    void normalizeFromScreenSpace()
+    {
+        x = normalizeCoordinate(x, 0, WINDOW_WIDTH);
+        y = normalizeCoordinate(y, 0, WINDOW_HEIGHT);
+        z = normalizeCoordinate(z.value(), Z_MIN, Z_MAX);
+    }
+
+    void normalize()
+    {
+        double magnitude = sqrt(x*x + y*y + z.value()*z.value());
+        if (magnitude > 0) {
+            x /= magnitude;
+            y /= magnitude;
+            z = z.value() / magnitude;
+        }
+    }
+
     void projectPerspective(float FOV, float screenWidth, float screenHeight)
     {
         // need to add focal length for this to work properly (for now just mock)
         float fov_radians = FOV * M_PI / 180.0f;
 
-        // Calculate focal length
-        float focalLength = (screenWidth / 2.0f) / std::tan(fov_radians / 2.0f);
+        // Calculate focal length ()
+        float focalLength = (WINDOW_WIDTH / 2.0f) / std::tan(fov_radians / 2.0f);
 
         if (z.has_value())
         {
-            // Normalize the coordinates first
+            // Normalize the coordinates first (putting them into world space)
             float normalizedX = normalizeCoordinate(x, 0, WINDOW_WIDTH);
             float normalizedY = normalizeCoordinate(y, 0, WINDOW_HEIGHT);
-            float normalizedZ = normalizeCoordinate(z.value(), 0, Z_MAX);
+            float normalizedZ = normalizeCoordinate(z.value(), Z_MIN, Z_MAX);
 
             // Calculate the scaling factor based on the distance from the camera (z-value)
             float scale = focalLength / (focalLength + z.value());
@@ -122,10 +151,11 @@ public:
             // Debug output before projection
             // std::cout << "Original (x, y, z): (" << x << ", " << y << ", " << z.value() << ")" << std::endl;
 
+            // scale coordinates according to projection scale
             normalizedX *= scale;
             normalizedY *= scale;
 
-            // map back to screen space
+            // map projected coordinates back to screen space
             x = (normalizedX + 1.0f) * WINDOW_WIDTH / 2.0f;
             y = (normalizedY + 1.0f) * WINDOW_HEIGHT / 2.0f;
 
