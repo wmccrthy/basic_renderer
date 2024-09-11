@@ -7,6 +7,59 @@
 #pragma once
 
 /*
+Helper method that returns a line for the Triangle's normal s.t we can render the line for debugging purposes.
+*/
+Line computeNormalLine(Point centroid, Point normal)
+{
+    float normalScale = 25.0f; // Adjust the scale factor as needed (adjusts length of the line);
+    Point normalEnd = Point(
+        centroid.x + normal.x / normalScale,
+        centroid.y + normal.y / normalScale,
+        centroid.z.value_or(0) + normal.z.value_or(0) / normalScale);
+    // Create a line to represent the normal vector
+    return Line(centroid, normalEnd, RGBA(255, 0, 0)); // Red color for normal
+}
+
+/*
+Helper methods that returns rotation matrices given angles of rotation
+*/
+matrix xRotationMatrix(float xRot)
+{
+    matrix rotX = matrix(4, 4);
+    rotX.addElement(0, 0, 1);
+    rotX.addElement(1, 1, cos(xRot));
+    rotX.addElement(1, 2, -sin(xRot));
+    rotX.addElement(2, 1, sin(xRot));
+    rotX.addElement(2, 2, cos(xRot));
+    rotX.addElement(3, 3, 1);
+    return rotX;
+}
+
+matrix yRotationMatrix(float yRot)
+{
+    matrix rotY = matrix(4, 4);
+    rotY.addElement(0, 0, cos(yRot));
+    rotY.addElement(0, 2, sin(yRot));
+    rotY.addElement(1, 1, 1);
+    rotY.addElement(2, 0, -sin(yRot));
+    rotY.addElement(2, 2, cos(yRot));
+    rotY.addElement(3, 3, 1);
+    return rotY;
+}
+
+matrix zRotationMatrix(float zRot)
+{
+    matrix rotZ = matrix(4, 4);
+    rotZ.addElement(0, 0, cos(zRot));
+    rotZ.addElement(0, 1, -sin(zRot));
+    rotZ.addElement(1, 0, sin(zRot));
+    rotZ.addElement(1, 1, cos(zRot));
+    rotZ.addElement(2, 2, 1);
+    rotZ.addElement(3, 3, 1);
+    return rotZ;
+}
+
+/*
 Super lightweight Shape class to be inherited by all other shape classes
 Only real purpose is so that we can have vector of shapes we want to draw in Screen class
 */
@@ -40,6 +93,7 @@ class Triangle : public Shape
 public:
     Line lines[3];
     RGBA color = RGBA(255, 255, 255);
+    Point vertices[3];
 
     Triangle()
     {
@@ -48,15 +102,116 @@ public:
     Triangle(Point p1, Point p2, Point p3, RGBA c = RGBA(255, 255, 255))
     {
         color = c;
-        this->fillLines(p1, p2, p3);
+        this->fillVertices(p1, p2, p3);
+        this->fillLines();
         this->getPointsToDraw();
     }
 
-    void fillLines(Point p1, Point p2, Point p3)
+    void fillVertices(Point p1, Point p2, Point p3)
     {
-        lines[0] = Line(p1, p2);
-        lines[1] = Line(p2, p3);
-        lines[2] = Line(p3, p1);
+        vertices[0] = p1;
+        vertices[1] = p2;
+        vertices[2] = p3;
+    }
+
+    void fillLines()
+    {
+        lines[0] = Line(vertices[0], vertices[1]);
+        lines[1] = Line(vertices[1], vertices[2]);
+        lines[2] = Line(vertices[2], vertices[0]);
+    }
+
+    Point computeNormal()
+    {
+        // compute normal of the triangle using it's vertices (we only need three points to compute normal of plane/face)
+        Point vectorA = Line(vertices[0], vertices[1]).getDirectionVector();
+        Point vectorB = Line(vertices[0], vertices[2]).getDirectionVector();
+        // vectorA.normalize();
+        // vectorB.normalize();
+        Point normal = vectorA.crossProduct(vectorB);
+        // normal.normalize();
+
+        return normal;
+    }
+
+    Point computeCentroid()
+    {
+        return Point(
+            (vertices[0].x + vertices[1].x + vertices[2].x) / 3.0f,
+            (vertices[0].y + vertices[1].y + vertices[2].y) / 3.0f,
+            (vertices[0].z.value_or(0) + vertices[1].z.value_or(0) + vertices[2].z.value_or(0)) / 3.0f);
+    }
+
+    void projectTri()
+    {
+        vertices[0].projectPerspective(60.0f, 900.0f, 900.0f);
+        vertices[1].projectPerspective(60.0f, 900.0f, 900.0f);
+        vertices[2].projectPerspective(60.0f, 900.0f, 900.0f);
+    }
+
+    std::vector<Point> getFillPoints()
+    {
+        std::vector<Point> filledPoints;
+        // vertices[0].projectPerspective(60.0f, 900.0f, 900.0f);
+        // vertices[1].projectPerspective(60.0f, 900.0f, 900.0f);
+        // vertices[2].projectPerspective(60.0f, 900.0f, 900.0f);
+
+        // Find the bounding box of the triangle (project the points)
+        int xMin = std::min({vertices[0].x, vertices[1].x, vertices[2].x});
+        int xMax = std::max({vertices[0].x, vertices[1].x, vertices[2].x});
+        int yMin = std::min({vertices[0].y, vertices[1].y, vertices[2].y});
+        int yMax = std::max({vertices[0].y, vertices[1].y, vertices[2].y});
+
+        // Loop over the bounding box
+        for (int y = yMin; y <= yMax; ++y)
+        {
+            for (int x = xMin; x <= xMax; ++x)
+            {
+                Point p = Point(x, y, 0.0f);
+                // Check if the point is inside the triangle
+                if (isPointInTri(p))
+                {
+                    filledPoints.emplace_back(p);
+                }
+            }
+        }
+
+        return filledPoints;
+    }
+
+    bool isPointInTri(Point p)
+    {
+        // Extract vertices
+        Point A = vertices[0];
+        Point B = vertices[1];
+        Point C = vertices[2];
+
+        // Calculate vectors
+        Point v0 = B - A;  // Vector from A to B
+        Point v1 = C - A;  // Vector from A to C
+        Point v2 = p - A;  // Vector from A to the point
+
+        // Compute dot products
+        float dot00 = v0.dotProduct(v0);
+        float dot01 = v0.dotProduct(v1);
+        float dot02 = v0.dotProduct(v2);
+        float dot11 = v1.dotProduct(v1);
+        float dot12 = v1.dotProduct(v2);
+
+        // Compute the denominator of the barycentric coordinates
+        float denom = dot00 * dot11 - dot01 * dot01;
+
+        // Make sure the triangle is not degenerate (area > 0)
+        if (denom == 0)
+            return false;
+
+        // Compute barycentric coordinates
+        float invDenom = 1.0f / denom;
+        float u = (dot11 * dot02 - dot01 * dot12) * invDenom;
+        float v = (dot00 * dot12 - dot01 * dot02) * invDenom;
+
+        // Check if the point lies within the triangle (u >= 0, v >= 0, and u + v <= 1)
+        return (u >= 0) && (v >= 0) && (u + v <= 1);
     }
 
     void getPointsToDraw() override
@@ -69,6 +224,15 @@ public:
                 pointsToDraw.emplace_back(p);
             }
         }
+    }
+
+    void print()
+    {
+        std::cout << "Triangle w/ vertices at:\n";
+        for (auto &p : vertices)
+        {
+            p.print();
+        };
     }
 };
 
@@ -96,8 +260,6 @@ public:
     */
     Quadrilateral(Point p1, Point p2, Point p3, Point p4, RGBA c = RGBA(255, 255, 255))
     {
-        // printf("quad constructing");
-        // c.print();
         color = c;
         this->fillLines(p1, p2, p3, p4);
         this->getPointsToDraw();
@@ -304,6 +466,7 @@ struct Face
 public:
     std::vector<Point> vertices;
     std::vector<Line> lines;
+    std::vector<Triangle> polygons;
 
     Face()
     {
@@ -311,41 +474,66 @@ public:
 
     Face(Point p1, Point p2, Point p3)
     {
+        // ORIGINAL IMPLEMENTATION
         vertices.emplace_back(p1);
         vertices.emplace_back(p2);
         vertices.emplace_back(p3);
 
+        // fillLines();
+
+        // POLYGON/TRIANGLE BASED IMPLEMENTATION
+        polygons.emplace_back(Triangle(p1, p2, p3));
         fillLines();
     }
 
     Face(Point p1, Point p2, Point p3, Point p4)
     {
+        // ORIGINAL IMPLEMENTATION
         vertices.emplace_back(p1);
         vertices.emplace_back(p2);
         vertices.emplace_back(p3);
         vertices.emplace_back(p4);
+
+        // fillLines();
+
+        // POLYGON/TRIANGLE BASED IMPLEMENTATION
+        polygons.emplace_back(Triangle(p1, p2, p3));
+        polygons.emplace_back(Triangle(p1, p3, p4));
 
         fillLines();
     }
 
     Point computeNormal()
     {
+        // ORIGINAL IMPLEMENTATION
         // compute normal of the face using it's vertices (we only need three points to compute normal of plane/face)
         Point vectorA = Line(vertices[0], vertices[1]).getDirectionVector();
         Point vectorB = Line(vertices[0], vertices[2]).getDirectionVector();
         Point normal = vectorA.crossProduct(vectorB);
-        normal.normalize();
 
-        // render normal for debugging; the normal line should be from vertex 1 to the point at normal
+        // normal.normalize();
 
-        // std::cout << "Normal:\n";
-        // normal.print();
         return normal;
+
+        // TRIANGLE-BASED IMPLEMENTATION
     }
 
-    Point computeCentroid() {
+    void projectFace()
+    {
+        vertices[0].projectPerspective(60.0f, 900, 900);
+        vertices[1].projectPerspective(60.0f, 900, 900);
+        vertices[2].projectPerspective(60.0f, 900, 900);
+
+        polygons.clear();
+        polygons.emplace_back(Triangle(vertices[0], vertices[1], vertices[2]));
+        polygons.emplace_back(Triangle(vertices[0], vertices[2], vertices[3]));
+    }
+
+    Point computeCentroid()
+    {
         float x = 0, y = 0, z = 0;
-        for (const auto& vertex : vertices) {
+        for (const auto &vertex : vertices)
+        {
             x += vertex.x;
             y += vertex.y;
             z += vertex.z.value_or(0);
@@ -356,12 +544,89 @@ public:
 
     void fillLines() // each face should have lines that connect it; will be either 3 or 4 (for now)
     {
+        // ORIGINAL IMPLEMENTATION
         for (int i = 0; i < vertices.size() - 1; i++)
         {
             lines.emplace_back(Line(vertices[i], vertices[i + 1]));
+
+            // if (i == 0 | i == 2) {lines.emplace_back(Line(vertices[i], vertices[i + 1], RGBA(255, 0, 0)));}
+            // else {lines.emplace_back(Line(vertices[i], vertices[i + 1]));}
         }
         // connect final vertex w/ first vertex
         lines.emplace_back(Line(vertices[vertices.size() - 1], vertices[0]));
+
+        // To give face solid appearance:
+        //  - pick two opposite lines
+        //  - draw line connecting each point on those lines
+        // std::cout << lines[0].getLength() << " " << lines[2].getLength() << "\n";
+        // for (int p = 0; p < lines[0].pointsToDraw.size(); p ++)
+        // {
+        //     lines.emplace_back(Line(lines[0].pointsToDraw[p], lines[2].pointsToDraw[p]));
+        // }
+        //  for (int p = 0; p < lines[1].pointsToDraw.size(); p ++)
+        // {
+        //     lines.emplace_back(Line(lines[1].pointsToDraw[p], lines[3].pointsToDraw[p]));
+        // }
+
+        // lines.emplace_back(Line(lines[0].pointsToDraw[24], lines[2].pointsToDraw[24]));
+
+
+        // ADDING TRIANGLE LINES
+        // for (auto &tri : this->polygons)
+        // {
+        //     // // tri.print();
+        //     // // culling...
+        //     // Point cameraPos = Point(0, 0, 0);
+        //     // Point triCentroid = tri.computeCentroid();
+        //     // // tri.projectTri();
+        //     // Point triNormal = tri.computeNormal();
+        //     // // RENDER THE TRIANGLE'S NORMAL FOR DEBUGGING PURPOSES
+        //     // // lines.emplace_back(computeNormalLine(triCentroid, triNormal));
+
+        //     // // Normalize centroid and translate according to cameraPos
+        //     // triCentroid.normalize();
+        //     // triCentroid.translate(-cameraPos.x, -cameraPos.y, -cameraPos.z.value_or(0));
+            
+        //     // float viewVector = triNormal.dotProduct(triCentroid);
+        //     // std::cout << viewVector << "\n";
+        //     // float epsilon = 1e-4; // Small threshold to account for precision errors
+
+        //     if (true)
+        //     {
+        //         for (int i = 0; i < 3; i++)
+        //         {
+        //             lines.emplace_back(tri.lines[i]);
+        //         }
+        //     }
+        // }
+    }
+
+    std::vector<Point> getSolidPoints()
+    {
+        int numPoints = lines[0].pointsToDraw.size();
+        std::vector<Point> solidPoints;
+        for (int p = 0; p < numPoints; p ++)
+        {
+            Line solidLine = Line(lines[0].pointsToDraw[p], lines[2].pointsToDraw[numPoints - 1 - p]);
+            for (auto &point : solidLine.pointsToDraw)
+            {
+                solidPoints.emplace_back(point);
+            }
+        }
+        // WITH ONLY THE ABOVE, THERE ARE MISSING PIXELS ON THE FACE... 
+        
+        numPoints = lines[1].pointsToDraw.size();
+        for (int p = 0; p < numPoints; p ++)
+        {
+            Line solidLine = Line(lines[1].pointsToDraw[p], lines[3].pointsToDraw[numPoints - 1 - p]);
+            for (auto &point : solidLine.pointsToDraw)
+            {
+                solidPoints.emplace_back(point);
+            }
+        } 
+        // THERE ARE LESS MISSING PIXELS IF WE ALSO DRAW THESE LINES BUT PERFORMANCE DROPS ODE AND STILL SOME MISSING
+
+        return solidPoints;
     }
 };
 
@@ -377,13 +642,20 @@ public:
     std::vector<Line> vertexConnections;
     // need some data structure to hold cuboid faces if I want to implement culling properly
     Face faces[6];
+    bool isWireFrame;
+    bool dontCull;
+    bool dontLight;
 
     RGBA color = RGBA(255, 255, 255);
 
-    Cuboid(Point center, float length, float height, float width, RGBA c = RGBA(255, 255, 255))
+    Cuboid(Point center, float length, float height, float width, RGBA c = RGBA(255, 255, 255), bool isWireFrame = false, bool dontCull = false, bool dontLight = false)
     {
         centroid = center;
         color = c;
+        this->isWireFrame = isWireFrame;
+        this->dontCull = dontCull;
+        this->dontLight = dontLight;
+
         // Define the 8 vertices of the cube based on the center and size (FOR NOW USE HARD-CODED Z VALUE FOR TESTING)
         // length corresponds to X distance between faces
         // height corresponds to Y distance bw faces
@@ -405,7 +677,7 @@ public:
 
     void fillFaces()
     {
-        // fill faces based on vertices 
+        // fill faces based on vertices
         // Bottom face (vertices[0], vertices[1], vertices[2], vertices[3])
         faces[0] = Face(vertices[0], vertices[3], vertices[2], vertices[1]);
 
@@ -427,135 +699,60 @@ public:
 
     void fillLines()
     {
-        vertexConnections.clear(); // remove previous lines (if we're calling this method it means vertices have updated; as such, we want to update lines)
-
-        // Connect bottom face vertices
-        vertexConnections.push_back(Line(vertices[0], vertices[1], color));
-        vertexConnections.push_back(Line(vertices[1], vertices[2], color));
-        vertexConnections.push_back(Line(vertices[2], vertices[3], color));
-        vertexConnections.push_back(Line(vertices[3], vertices[0], color));
-
-        // Connect top face vertices
-        vertexConnections.push_back(Line(vertices[4], vertices[5], color));
-        vertexConnections.push_back(Line(vertices[5], vertices[6], color));
-        vertexConnections.push_back(Line(vertices[6], vertices[7], color));
-        vertexConnections.push_back(Line(vertices[7], vertices[4], color));
-
-        // Connect top face to bottom face
-        vertexConnections.push_back(Line(vertices[0], vertices[4], color)); // front face
-        vertexConnections.push_back(Line(vertices[1], vertices[5], color)); // front face
-        vertexConnections.push_back(Line(vertices[2], vertices[6], color)); // back face
-        vertexConnections.push_back(Line(vertices[3], vertices[7], color)); // back face
-
         // I want to associate vertex connections with faces; each face should map to two vertex connections
         fillFaces();
     }
 
     void getPointsToDraw() override
     {
-        // working code to get cuboid points
-        // for (auto &l : this->vertexConnections)
-        // {
-        //     for (auto &p : l.pointsToDraw)
-        //     {
-        //         pointsToDraw.emplace_back(p);
-        //     }
-        // }
+        // for now use basic lighting approach (light source from camera)
+        Point lightingVector = Point(0, 0, 1.0f);
 
         // testing faces
         for (auto &f : this->faces)
         {
-            // CULLING here;
-            // seem's like normal is being computed correctly based on the rendered line
-            
-            Point cameraPos = Point(0, 0, -10.0f);
-            Point viewVector = f.computeCentroid();
-            cameraPos.print();
-            viewVector.print();
-            cameraPos.translate(-viewVector.x, -viewVector.y, -viewVector.z.value());
-            cameraPos.print();
-            cameraPos.normalize();
-            viewVector.translate(-cameraPos.x, -cameraPos.y, -cameraPos.z.value());
-            float test = cameraPos.x * f.computeNormal().x + cameraPos.y * f.computeNormal().y + cameraPos.z.value() * f.computeNormal().z.value();
-            matrix shouldCull = cameraPos.getVector().transpose().multiply(f.computeNormal().getVector());
-            shouldCull.print();
-            std::cout << test << "\n";
-            Point faceNormal = f.computeNormal();
-            faceNormal.normalize();
-            // should cull is tripping
-
-
-            if (faceNormal.z < 0)
+            // previously, we were culling based on the normal of the un-projected face; this led to issues so we now
+            // try culling against the projected face's normal (project each vertex on f)
+            Face faceCopy = Face(f.vertices[0], f.vertices[1], f.vertices[2], f.vertices[3]);
+            faceCopy.projectFace();
+            Point faceNormal = faceCopy.computeNormal();
+            // Culling condition
+            if (faceNormal.z > 0 | dontCull)
             {
+                // compute face color based on lighting vector (for now just vector pointing in z direction)
+                // i assume we want to dot the faceNormal with the lighting vector to compute the 'brightness' value
+                float brightness = lightingVector.dotProduct(faceNormal.stdNormalize());
+                RGBA lightingColor = (dontCull | dontLight) ? color : RGBA(color.r * brightness, color.g * brightness, color.b * brightness);
+                // std::cout << "lighting color:\n";
+                // lightingColor.print();
+
                 for (auto &l : f.lines)
                 {
                     for (auto &p : l.pointsToDraw)
                     {
+                        p.color = lightingColor;
                         pointsToDraw.emplace_back(p);
                     }
                 }
-            }
 
-            // Render the normal for debugging
-            // Calculate the centroid of the face as the start point
-            Point normal = f.computeNormal();
-            Point faceCentroid = Point(
-                (f.vertices[0].x + f.vertices[1].x + f.vertices[2].x + f.vertices[3].x) / 4.0f,
-                (f.vertices[0].y + f.vertices[1].y + f.vertices[2].y + f.vertices[3].y) / 4.0f,
-                (f.vertices[0].z.value_or(0) + f.vertices[1].z.value_or(0) + f.vertices[2].z.value_or(0) + f.vertices[3].z.value_or(0)) / 4.0f);
+                // IN PROGRESS: ADD POINTS THAT MAKE SHAPE SOLID
+                if (!isWireFrame)
+                {
+                    for (auto &solidP : f.getSolidPoints())
+                    {
+                        solidP.color = lightingColor;
+                        pointsToDraw.emplace_back(solidP);
+                    }
+                }
 
-            // End point of the normal (scale the normal for visibility)
-            float normalScale = 10.0f; // Adjust the scale factor as needed
-            Point normalEnd = Point(
-                faceCentroid.x + normal.x * normalScale,
-                faceCentroid.y + normal.y * normalScale,
-                faceCentroid.z.value_or(0) + normal.z.value_or(0) * normalScale);
-
-            // Create a line to represent the normal vector
-            Line normalLine = Line(faceCentroid, normalEnd, RGBA(255, 0, 0)); // Red color for normal
-
-            // Add the normal line's points to draw
-            for (auto &p : normalLine.pointsToDraw)
-            {
-                pointsToDraw.emplace_back(p);
-            }
+                // RENDER THE NORMAL FOR DEBUGGING (seems to b working oddly now)
+                // Line normalLine = computeNormalLine(f.computeCentroid(), f.computeNormal());
+                // for (auto &p : normalLine.pointsToDraw)
+                // {
+                //     pointsToDraw.emplace_back(p);
+                // }
+            }            
         }
-    }
-
-    matrix xRotationMatrix(float xRot)
-    {
-        matrix rotX = matrix(4, 4);
-        rotX.addElement(0, 0, 1);
-        rotX.addElement(1, 1, cos(xRot));
-        rotX.addElement(1, 2, -sin(xRot));
-        rotX.addElement(2, 1, sin(xRot));
-        rotX.addElement(2, 2, cos(xRot));
-        rotX.addElement(3, 3, 1);
-        return rotX;
-    }
-
-    matrix yRotationMatrix(float yRot)
-    {
-        matrix rotY = matrix(4, 4);
-        rotY.addElement(0, 0, cos(yRot));
-        rotY.addElement(0, 2, sin(yRot));
-        rotY.addElement(1, 1, 1);
-        rotY.addElement(2, 0, -sin(yRot));
-        rotY.addElement(2, 2, cos(yRot));
-        rotY.addElement(3, 3, 1);
-        return rotY;
-    }
-
-    matrix zRotationMatrix(float zRot)
-    {
-        matrix rotZ = matrix(4, 4);
-        rotZ.addElement(0, 0, cos(zRot));
-        rotZ.addElement(0, 1, -sin(zRot));
-        rotZ.addElement(1, 0, sin(zRot));
-        rotZ.addElement(1, 1, cos(zRot));
-        rotZ.addElement(2, 2, 1);
-        rotZ.addElement(3, 3, 1);
-        return rotZ;
     }
 
     void rotate(float xRot, float yRot, float zRot, bool aroundCentroid = true)

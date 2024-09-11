@@ -3,6 +3,7 @@
 #include <numeric>
 #include "matmul.h"
 #include <random>
+#include "ctime"
 
 int main()
 {
@@ -41,17 +42,16 @@ int main()
     test5.print();
     matrix test6 = test5.multiply(testPointVector2D);
     test6.print();
-    // Draws random pixels
-    // for (int i = 0; i < 250; i++)
-    // {
-    //     testScreen.addPixel(rand() % 1080, rand() % 720);
-    // }
 
-    // Draws random lines
-    // for (int i = 0; i < 5; i++)
+    // matrix massiveTest(20, 20);
+    // for (int i = 0; i < 20; i ++)
     // {
-    //     testScreen.addLine(rand() % 1080, rand() % 720, rand() % 1080, rand() % 720);
+    //     for (int j = 0; j < 20; j ++)
+    //     {
+    //         massiveTest[i][j] = rand() % 10;
+    //     }
     // }
+    // massiveTest.print();
 
     // Draws Rectangle using Lines
     // testScreen.addLine(100, 100, 100, 200);
@@ -78,7 +78,6 @@ int main()
         testScreen.addQuadrilateral<Quadrilateral>(p1, p2, p3, p4, RGBA(255, 0, 0));
         testScreen.addQuadrilateral<Rectangle>(p1, p2, p3, p4, RGBA(0, 255, 0));
         testScreen.addQuadrilateral<Square>(p1, p2, p3, p4, RGBA(0, 0, 255));
-
     }
 
     // Test adding random cuboids
@@ -95,64 +94,44 @@ int main()
     std::default_random_engine generator(rd()); // rd() provides a random seed
     std::uniform_real_distribution<float> distribution(0.01, 0.1);
 
-    Cuboid specificCuboid = Cuboid(Point(screenWidth / 2, screenHeight / 2, 0), 50, 50, 300);
-    Cuboid originCuboid = Cuboid(Point(200, 200, 900), 50, 50, 100);
-    Cuboid originCuboidClose = Cuboid(Point(200, 200, 100), 50, 50, 100);
+    Cuboid specificCuboid = Cuboid(Point(screenWidth / 2, screenHeight / 2, 0), 50, 50, 50);
+    Cuboid unlitCuboid = Cuboid(Point(screenWidth / 2, 200, 0), 50, 50, 50, RGBA(255, 255, 255), false, false, true);
+    Cuboid wireCuboid = Cuboid(Point(700, screenHeight / 2, 0), 50, 50, 50, RGBA(255, 255, 255), true, false, true);
+    Cuboid wireUnculledCuboid = Cuboid(Point(200, screenHeight / 2, 0), 50, 50, 50, RGBA(255, 255, 255), true, true);
 
     // TESTING TRIANGLE CLASS
     Triangle testTri = Triangle(Point(690, 10), Point(690, 50), Point(650, 10));
 
+    // total render time (for testing)
+    float renderTime = 0;
+    int numFrames = 0;
+
     while (true)
     {
+        clock_t frameStartTime = clock();
         testScreen.clearPoints();
 
-        // Rotate and update points for each random cuboid
-        // for (auto& c : cuboids)
-        // {
-        //     c.rotate(distribution(generator), distribution(generator), distribution(generator));
-        //     testScreen.updateCuboid(c);
-        // }
-
-        // rotate and update points for speciic cuboid
-        specificCuboid.rotate(0.02, 0.01, 0.01);
+        // rotate and update points for specific cuboid
+        specificCuboid.rotate(0.003, 0.001, 0.004);
         testScreen.updateCuboid(specificCuboid);
-        originCuboid.rotate(0.04, 0.03, -0.05);
-        testScreen.updateCuboid(originCuboid);
-        originCuboidClose.rotate(0.05, 0.01, -0.02);
-        testScreen.updateCuboid(originCuboidClose);
-        testScreen.addPointsToRender<Triangle>(testTri);
+        unlitCuboid.rotate(0.003, 0.001, 0.004);
+        testScreen.updateCuboid(unlitCuboid);
+        wireCuboid.rotate(0.003, 0.001, 0.004);
+        testScreen.updateCuboid(wireCuboid);
+        wireUnculledCuboid.rotate(0.003, 0.001, 0.004);
+        testScreen.updateCuboid(wireUnculledCuboid);
 
         testScreen.displayScreen(); // Render the updated screen
-        testScreen.input(); 
+        testScreen.input(renderTime, numFrames);
 
-        SDL_Delay(35);
+        SDL_Delay(0);
+
+        clock_t frameEndTime = clock() - frameStartTime;
+        renderTime += (float)frameEndTime / CLOCKS_PER_SEC * 1000;
+        numFrames += 1;
+        // std::cout << "Frame rendered in: " << (float)frameEndTime/CLOCKS_PER_SEC * 1000 << "ms \n";
     }
+    // std::cout << "Average frame render time: " << renderTime / numFrames << "\n";
+
     return 0;
 }
-
-/*
-AGENDA:
-    3D TIME!
-    To-Do:
-        - make Drawer class
-            - generally idea for this is given a to draw certain shapes
-            - drawLine(p1, p2)
-            - drawQuadrilateral(p1, p2, p3, p4)
-            - drawRectangle(topLeft, width, height)
-            - drawSquare(topLeft, sideLength)
-            - drawTriangle(p1, p2, p3)
-            - and so on...
-
-    at this point, the four points we have are the four points that make up the Square
-    need to understand 3d transformation stuff:
-     - transform?
-     - rotate?
-     - projection?
-
-    How are we representing/abstracting the z axis?
-    see youtube video (cracked) we normalize all coords to (-1, 1) range
-
-    IMPLEMENT MATRIX MULTIPLICATION
-
-    IMPLEMENT PERSPECTIVE RPOJECTION
-*/

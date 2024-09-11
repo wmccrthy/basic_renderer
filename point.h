@@ -40,6 +40,11 @@ public:
         z = zCoord;
     }
 
+    Point operator-(const Point &other) const
+    {
+        return Point(x - other.x, y - other.y, z.value_or(0) - other.z.value_or(0));
+    }
+
     matrix getVector(bool isAffine = false)
     {
         matrix pointVector;
@@ -95,6 +100,11 @@ public:
         return Point(newX, newY, newZ);
     }
 
+    float dotProduct(Point otherPointVector)
+    {
+        return x * otherPointVector.x + y * otherPointVector.y + z.value_or(0) * otherPointVector.z.value_or(0);
+    }
+
     void translate(float xTrans, float yTrans, float zTrans)
     {
         x += xTrans;
@@ -111,22 +121,31 @@ public:
     }
 
     /*
-    Normalizes point from screen space
+    Normalizes point from screen space into world space (-1.0, 1.0) range
     */
-    void normalizeFromScreenSpace()
+    void normalize()
     {
         x = normalizeCoordinate(x, 0, WINDOW_WIDTH);
         y = normalizeCoordinate(y, 0, WINDOW_HEIGHT);
         z = normalizeCoordinate(z.value(), Z_MIN, Z_MAX);
     }
 
-    void normalize()
+    /*
+    Normalize Point between (0, 1)
+    */
+    Point stdNormalize()
     {
-        double magnitude = sqrt(x*x + y*y + z.value()*z.value());
-        if (magnitude > 0) {
-            x /= magnitude;
-            y /= magnitude;
-            z = z.value() / magnitude;
+        double magnitude = sqrt(x * x + y * y + z.value() * z.value());
+        if (magnitude > 0)
+        {
+            float newX = x / magnitude;
+            float newY = y / magnitude;
+            float newZ = z.value() / magnitude;
+            return Point(newX, newY, newZ);
+        }
+        else
+        {
+            return Point(0, 0, 0);
         }
     }
 
@@ -146,6 +165,7 @@ public:
             float normalizedZ = normalizeCoordinate(z.value(), Z_MIN, Z_MAX);
 
             // Calculate the scaling factor based on the distance from the camera (z-value)
+            // WOW THE CULLING ISSUE WAS HERE BC I WAS ADDING THE UN-NORMALIZED Z TO THE DENOMINATOR
             float scale = focalLength / (focalLength + z.value());
 
             // Debug output before projection
@@ -157,13 +177,51 @@ public:
 
             // map projected coordinates back to screen space
             x = (normalizedX + 1.0f) * WINDOW_WIDTH / 2.0f;
-            y = (normalizedY + 1.0f) * WINDOW_HEIGHT / 2.0f;
+            y = (1.0f - normalizedY) * WINDOW_HEIGHT / 2.0f;
 
             // Debug output after projection
             // std::cout << "Projected (x, y): (" << x << ", " << y << ")" << std::endl;
             // std::cout << "Projected normalized (x,y): (" << normalizeCoordinate(x, 0, WINDOW_WIDTH) << "," << normalizeCoordinate(y, 0, WINDOW_HEIGHT) << ")" << std::endl;
         }
     }
+
+    Point getProjected(float FOV)
+    {
+        // need to add focal length for this to work properly (for now just mock)
+        float fov_radians = FOV * M_PI / 180.0f;
+
+        // Calculate focal length ()
+        float focalLength = (WINDOW_WIDTH / 2.0f) / std::tan(fov_radians / 2.0f);
+
+        if (z.has_value())
+        {
+            // Normalize the coordinates first (putting them into world space)
+            float normalizedX = normalizeCoordinate(x, 0, WINDOW_WIDTH);
+            float normalizedY = normalizeCoordinate(y, 0, WINDOW_HEIGHT);
+            float normalizedZ = normalizeCoordinate(z.value(), Z_MIN, Z_MAX);
+
+            float scale = focalLength / (focalLength + z.value());
+
+            // scale coordinates according to projection scale
+            normalizedX *= scale;
+            normalizedY *= scale;
+
+            // map projected coordinates back to screen space
+            normalizedX = (normalizedX + 1.0f) * WINDOW_WIDTH / 2.0f;
+            normalizedY = (1.0f - normalizedY) * WINDOW_HEIGHT / 2.0f;
+
+            return Point(normalizedX, normalizedY);
+        }
+        return Point(0, 0);
+    }
+
+    // Point mapNormalizedToScreenSpace(float normX, float normY, float normZ)
+    // {
+    //     float screenX = (normX + 1.0f) * WINDOW_WIDTH / 2.0f;
+    //     float screenY = (1.0f - normY) * WINDOW_HEIGHT / 2.0f;
+    //     float screenZ = (normX + )
+    //     return Point(screenX, screenY, z.value_or(1.0f));
+    // }
 
     void print()
     {

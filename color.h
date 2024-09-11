@@ -11,7 +11,7 @@ struct RGBA
 
     void print()
     {
-        std::cout << "(" + std::to_string(r) + "," + std::to_string(g) + "," + std::to_string(a) + ")\n";
+        std::cout << "(" + std::to_string(r) + "," + std::to_string(g) + "," + std::to_string(b) + "," + std::to_string(a) + ")\n";
         return;
     }
 };

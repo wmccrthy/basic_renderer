@@ -139,4 +139,12 @@ public:
 
         return nextPoint;
     }
+
+    void print()
+    {
+        std::cout << "Line from:\n";
+        point1.print();
+        std::cout << "->\n";
+        point2.print();
+    }
 };

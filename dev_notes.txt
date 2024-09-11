@@ -27,11 +27,44 @@ WORKING NOW
 - cuboid class w/ rotation etc
 - updated other classes (most importantly projection and coordinate normalization working in Point class)
 - new triangle class
+- culling exists but not working
 
+
+Plan of attack 9/5 (haven't worked on much in last few days)
 NEXT UP
 - extend Cuboid s.t it can be made up of triangles (for easier time w/ culling and such)
-- culling (a process of selectively rendering or excluding objects or portions of a scene that are not visible to the player)
+    - inshallah this is the key to fix culling
+
+- FIX CULLING; ISOLATE THE PROBLEM (HAS TO BE SOME MATH)
+    - manually calculate normals for plane to 
+    - 
+
 - clean up old comments and make new clear comments
 - filling shapes (not just wireframe rendering)
 - lighting (s.t filled shapes are 3d distinguishable)
 - refactor Screen class to optimize rendering flow (longer term, need to read up on this)
+
+
+
+FOUND CULLING ISSUE: 
+    - IF WE TURN PROJECTION OFF, CULLING WORKS (IF WE ADD NORMALIZED Z TO THE DENOMINATOR OF PROJECTION SCALE)
+    - 
+
+
+Notes as of 9/2
+- CULLING SEEMS TO WORK NOW; (NOT SURE PRECISELY WHY, FIX WAS JUST A MATTER OF ALTERNATING CONFIGURATION OF HOW COORDINATES WERE (OR WERE NOT) NORMALIZED THRUOUT RENDERING PIPELINE
+
+ACTION ITEMS:
+    - DESPARATELY NEED TO CLEAN UP CODE
+    - figure out why culling works now; understand configuration of pipeline
+    - add method to render filled shapes (DEBUG AND FIX THIS METHOD; IT'S TWEAKING, )
+        - maybe we could use ray-casting to just gets points between 4-vertex face; try this approach soon
+    - add basic lighting
+
+
+Notes as of 9/10
+
+- cullings works
+- have a method that does work for getting solid points BUT it's extremely non performant (if cuboid is too large, rotation is too fast, or any other
+condition that leads to more processing, shit gets bad)
+- have basic lighting working

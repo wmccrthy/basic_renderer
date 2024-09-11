@@ -16,7 +16,7 @@ class Screen
 public:
     const int WINDOW_WIDTH = 900;
     const float WINDOW_HEIGHT = 900;
-    const float FOV = 90.0f;
+    const float FOV = 60.0f;
 
     void addPixel(float x, float y)
     {
@@ -59,33 +59,6 @@ public:
         }
     }
 
-    // void addShape(std::unique_ptr<Shape> s)
-    // {
-    //     shapesInScene.emplace_back(std::move(s));
-    // }
-
-    // void clearShapes()
-    // {
-    //     shapesInScene.clear();
-    // }
-
-    // void renderShapes()
-    // {
-    //     for (const auto &shape : shapesInScene)
-    //     {
-    //         renderShape(*shape);
-    //     }
-    // }
-
-    // void renderShape(Shape &s)
-    // {
-    //     s.getPointsToDraw();
-    //     for (const auto &p : s.pointsToDraw)
-    //     {
-    //         renderPoint(p);
-    //     }
-    // }
-
     void renderPoint(Point point)
     {
         RGBA color = point.color;
@@ -118,13 +91,14 @@ public:
     }
     // NOTE: perhaps instead of drawing all points to screen at once, we can have methods that draw single shapes at a time
 
-    void input()
+    void input(float renderTime, int numFrames)
     {
         while (SDL_PollEvent(&e))
         {
             if (e.type == SDL_QUIT)
             {
                 SDL_Quit();
+                std::cout << "Average frame render time: " << renderTime / numFrames << "ms\n";
                 exit(0);
             }
         }
@@ -133,7 +107,7 @@ public:
     Screen()
     {
         SDL_Init(SDL_INIT_VIDEO);
-        SDL_SetHint(SDL_HINT_RENDER_DRIVER, "opengl");
+        SDL_SetHint(SDL_HINT_RENDER_DRIVER, "software");
         SDL_CreateWindowAndRenderer(WINDOW_WIDTH, WINDOW_HEIGHT, 0, &window, &renderer);
         SDL_RenderSetScale(renderer, 1.0, 1.0);
     }
