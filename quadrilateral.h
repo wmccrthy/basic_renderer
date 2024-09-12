@@ -144,17 +144,14 @@ public:
 
     void projectTri()
     {
-        vertices[0].projectPerspective(60.0f, 900.0f, 900.0f);
-        vertices[1].projectPerspective(60.0f, 900.0f, 900.0f);
-        vertices[2].projectPerspective(60.0f, 900.0f, 900.0f);
+        vertices[0].projectPerspective(60.0f);
+        vertices[1].projectPerspective(60.0f);
+        vertices[2].projectPerspective(60.0f);
     }
 
     std::vector<Point> getFillPoints()
     {
         std::vector<Point> filledPoints;
-        // vertices[0].projectPerspective(60.0f, 900.0f, 900.0f);
-        // vertices[1].projectPerspective(60.0f, 900.0f, 900.0f);
-        // vertices[2].projectPerspective(60.0f, 900.0f, 900.0f);
 
         // Find the bounding box of the triangle (project the points)
         int xMin = std::min({vertices[0].x, vertices[1].x, vertices[2].x});
@@ -187,9 +184,9 @@ public:
         Point C = vertices[2];
 
         // Calculate vectors
-        Point v0 = B - A;  // Vector from A to B
-        Point v1 = C - A;  // Vector from A to C
-        Point v2 = p - A;  // Vector from A to the point
+        Point v0 = B - A; // Vector from A to B
+        Point v1 = C - A; // Vector from A to C
+        Point v2 = p - A; // Vector from A to the point
 
         // Compute dot products
         float dot00 = v0.dotProduct(v0);
@@ -472,21 +469,23 @@ public:
     {
     }
 
-    Face(Point p1, Point p2, Point p3)
+    Face(Point p1, Point p2, Point p3, bool isWireFrame)
     {
         // ORIGINAL IMPLEMENTATION
         vertices.emplace_back(p1);
         vertices.emplace_back(p2);
         vertices.emplace_back(p3);
 
-        // fillLines();
-
         // POLYGON/TRIANGLE BASED IMPLEMENTATION
         polygons.emplace_back(Triangle(p1, p2, p3));
-        fillLines();
+
+        if (isWireFrame)
+        {
+            fillLines();
+        }
     }
 
-    Face(Point p1, Point p2, Point p3, Point p4)
+    Face(Point p1, Point p2, Point p3, Point p4, bool isWireFrame)
     {
         // ORIGINAL IMPLEMENTATION
         vertices.emplace_back(p1);
@@ -494,21 +493,22 @@ public:
         vertices.emplace_back(p3);
         vertices.emplace_back(p4);
 
-        // fillLines();
-
         // POLYGON/TRIANGLE BASED IMPLEMENTATION
         polygons.emplace_back(Triangle(p1, p2, p3));
         polygons.emplace_back(Triangle(p1, p3, p4));
 
-        fillLines();
+        if (isWireFrame)
+        {
+            fillLines();
+        }
     }
 
     Point computeNormal()
     {
         // ORIGINAL IMPLEMENTATION
         // compute normal of the face using it's vertices (we only need three points to compute normal of plane/face)
-        Point vectorA = Line(vertices[0], vertices[1]).getDirectionVector();
-        Point vectorB = Line(vertices[0], vertices[2]).getDirectionVector();
+        Point vectorA = Line(vertices[0], vertices[1], RGBA(255, 255, 255), true).getDirectionVector();
+        Point vectorB = Line(vertices[0], vertices[2], RGBA(255, 255, 255), true).getDirectionVector();
         Point normal = vectorA.crossProduct(vectorB);
 
         // normal.normalize();
@@ -520,9 +520,9 @@ public:
 
     void projectFace()
     {
-        vertices[0].projectPerspective(60.0f, 900, 900);
-        vertices[1].projectPerspective(60.0f, 900, 900);
-        vertices[2].projectPerspective(60.0f, 900, 900);
+        vertices[0].projectPerspective(60.0f);
+        vertices[1].projectPerspective(60.0f);
+        vertices[2].projectPerspective(60.0f);
 
         polygons.clear();
         polygons.emplace_back(Triangle(vertices[0], vertices[1], vertices[2]));
@@ -548,28 +548,9 @@ public:
         for (int i = 0; i < vertices.size() - 1; i++)
         {
             lines.emplace_back(Line(vertices[i], vertices[i + 1]));
-
-            // if (i == 0 | i == 2) {lines.emplace_back(Line(vertices[i], vertices[i + 1], RGBA(255, 0, 0)));}
-            // else {lines.emplace_back(Line(vertices[i], vertices[i + 1]));}
         }
         // connect final vertex w/ first vertex
         lines.emplace_back(Line(vertices[vertices.size() - 1], vertices[0]));
-
-        // To give face solid appearance:
-        //  - pick two opposite lines
-        //  - draw line connecting each point on those lines
-        // std::cout << lines[0].getLength() << " " << lines[2].getLength() << "\n";
-        // for (int p = 0; p < lines[0].pointsToDraw.size(); p ++)
-        // {
-        //     lines.emplace_back(Line(lines[0].pointsToDraw[p], lines[2].pointsToDraw[p]));
-        // }
-        //  for (int p = 0; p < lines[1].pointsToDraw.size(); p ++)
-        // {
-        //     lines.emplace_back(Line(lines[1].pointsToDraw[p], lines[3].pointsToDraw[p]));
-        // }
-
-        // lines.emplace_back(Line(lines[0].pointsToDraw[24], lines[2].pointsToDraw[24]));
-
 
         // ADDING TRIANGLE LINES
         // for (auto &tri : this->polygons)
@@ -586,7 +567,7 @@ public:
         //     // // Normalize centroid and translate according to cameraPos
         //     // triCentroid.normalize();
         //     // triCentroid.translate(-cameraPos.x, -cameraPos.y, -cameraPos.z.value_or(0));
-            
+
         //     // float viewVector = triNormal.dotProduct(triCentroid);
         //     // std::cout << viewVector << "\n";
         //     // float epsilon = 1e-4; // Small threshold to account for precision errors
@@ -601,32 +582,61 @@ public:
         // }
     }
 
-    std::vector<Point> getSolidPoints()
+    /*
+    Gets all points that 'fill' the face (make it solid) by projecting the face's vertices and scanning over the face's bounding box
+    */
+    std::vector<Point> getFillPoints()
     {
-        int numPoints = lines[0].pointsToDraw.size();
-        std::vector<Point> solidPoints;
-        for (int p = 0; p < numPoints; p ++)
+        std::vector<Point> filledPoints;
+        // first project vertices s.t they are in 2d screen space
+        Point v0 = vertices[0].getProjected(60.0f);
+        Point v1 = vertices[1].getProjected(60.0f);
+        Point v2 = vertices[2].getProjected(60.0f);
+        Point v3 = vertices[3].getProjected(60.0f);
+
+        // Get the bounding box for the face
+        int xMin = std::min({v0.x, v1.x, v2.x, v3.x});
+        int xMax = std::max({v0.x, v1.x, v2.x, v3.x});
+        int yMin = std::min({v0.y, v1.y, v2.y, v3.y});
+        int yMax = std::max({v0.y, v1.y, v2.y, v3.y});
+
+        // Loop over the bounding box and check each point
+        for (int y = yMin; y <= yMax; ++y)
         {
-            Line solidLine = Line(lines[0].pointsToDraw[p], lines[2].pointsToDraw[numPoints - 1 - p]);
-            for (auto &point : solidLine.pointsToDraw)
+            for (int x = xMin; x <= xMax; ++x)
             {
-                solidPoints.emplace_back(point);
+                Point p(x, y);
+
+                // Check if the point is inside the quadrilateral
+                if (isPointInQuad(p, v0, v1, v2, v3))
+                {
+                    filledPoints.emplace_back(p);
+                }
             }
         }
-        // WITH ONLY THE ABOVE, THERE ARE MISSING PIXELS ON THE FACE... 
-        
-        numPoints = lines[1].pointsToDraw.size();
-        for (int p = 0; p < numPoints; p ++)
-        {
-            Line solidLine = Line(lines[1].pointsToDraw[p], lines[3].pointsToDraw[numPoints - 1 - p]);
-            for (auto &point : solidLine.pointsToDraw)
-            {
-                solidPoints.emplace_back(point);
-            }
-        } 
-        // THERE ARE LESS MISSING PIXELS IF WE ALSO DRAW THESE LINES BUT PERFORMANCE DROPS ODE AND STILL SOME MISSING
 
-        return solidPoints;
+        return filledPoints;
+    }
+
+    bool isPointInTri(const Point p, Point v0, Point v1, Point v2)
+    {
+        // Barycentric coordinate method
+
+        float denom = (v1.y - v2.y) * (v0.x - v2.x) + (v2.x - v1.x) * (v0.y - v2.y);
+        float a = ((v1.y - v2.y) * (p.x - v2.x) + (v2.x - v1.x) * (p.y - v2.y)) / denom;
+        float b = ((v2.y - v0.y) * (p.x - v2.x) + (v0.x - v2.x) * (p.y - v2.y)) / denom;
+        float c = 1.0f - a - b;
+
+        return a >= 0 && b >= 0 && c >= 0;
+    }
+
+    bool isPointInQuad(const Point &p, Point v0, Point v1, Point v2, Point v3)
+    {
+        // Split quadrilateral into two triangles (v0, v1, v2) and (v0, v2, v3)
+        bool inFirstTriangle = isPointInTri(p, v0, v1, v2);
+        bool inSecondTriangle = isPointInTri(p, v0, v2, v3);
+
+        return inFirstTriangle || inSecondTriangle;
     }
 };
 
@@ -671,36 +681,30 @@ public:
         vertices[6] = Point(center.x + length / 2, center.y + height / 2, center.z.value_or(0) + width / 2, c);
         vertices[7] = Point(center.x - length / 2, center.y + height / 2, center.z.value_or(0) + width / 2, c);
 
-        // Initialize the lines connecting the vertices
-        fillLines();
+        // Initialize the faces connecting the vertices
+        fillFaces();
     }
 
     void fillFaces()
     {
         // fill faces based on vertices
         // Bottom face (vertices[0], vertices[1], vertices[2], vertices[3])
-        faces[0] = Face(vertices[0], vertices[3], vertices[2], vertices[1]);
+        faces[0] = Face(vertices[0], vertices[3], vertices[2], vertices[1], isWireFrame);
 
         // Top face (vertices[4], vertices[5], vertices[6], vertices[7])
-        faces[1] = Face(vertices[4], vertices[5], vertices[6], vertices[7]);
+        faces[1] = Face(vertices[4], vertices[5], vertices[6], vertices[7], isWireFrame);
 
         // Front face (vertices[0], vertices[1], vertices[5], vertices[4])
-        faces[2] = Face(vertices[0], vertices[1], vertices[5], vertices[4]);
+        faces[2] = Face(vertices[0], vertices[1], vertices[5], vertices[4], isWireFrame);
 
         // Back face (vertices[2], vertices[3], vertices[7], vertices[6])
-        faces[3] = Face(vertices[2], vertices[3], vertices[7], vertices[6]);
+        faces[3] = Face(vertices[2], vertices[3], vertices[7], vertices[6], isWireFrame);
 
         // Left face (vertices[3], vertices[0], vertices[4], vertices[7])
-        faces[4] = Face(vertices[3], vertices[0], vertices[4], vertices[7]);
+        faces[4] = Face(vertices[3], vertices[0], vertices[4], vertices[7], isWireFrame);
 
         // Right face (vertices[1], vertices[2], vertices[6], vertices[5])
-        faces[5] = Face(vertices[1], vertices[2], vertices[6], vertices[5]);
-    }
-
-    void fillLines()
-    {
-        // I want to associate vertex connections with faces; each face should map to two vertex connections
-        fillFaces();
+        faces[5] = Face(vertices[1], vertices[2], vertices[6], vertices[5], isWireFrame);
     }
 
     void getPointsToDraw() override
@@ -713,7 +717,7 @@ public:
         {
             // previously, we were culling based on the normal of the un-projected face; this led to issues so we now
             // try culling against the projected face's normal (project each vertex on f)
-            Face faceCopy = Face(f.vertices[0], f.vertices[1], f.vertices[2], f.vertices[3]);
+            Face faceCopy = Face(f.vertices[0], f.vertices[1], f.vertices[2], f.vertices[3], isWireFrame);
             faceCopy.projectFace();
             Point faceNormal = faceCopy.computeNormal();
             // Culling condition
@@ -726,19 +730,21 @@ public:
                 // std::cout << "lighting color:\n";
                 // lightingColor.print();
 
-                for (auto &l : f.lines)
+                if (isWireFrame)
                 {
-                    for (auto &p : l.pointsToDraw)
+                    for (auto &l : f.lines)
                     {
-                        p.color = lightingColor;
-                        pointsToDraw.emplace_back(p);
+                        for (auto &p : l.pointsToDraw)
+                        {
+                            p.color = lightingColor;
+                            pointsToDraw.emplace_back(p);
+                        }
                     }
                 }
-
-                // IN PROGRESS: ADD POINTS THAT MAKE SHAPE SOLID
-                if (!isWireFrame)
+                else
                 {
-                    for (auto &solidP : f.getSolidPoints())
+                    // IN PROGRESS: ADD POINTS THAT MAKE SHAPE SOLID
+                    for (auto &solidP : f.getFillPoints())
                     {
                         solidP.color = lightingColor;
                         pointsToDraw.emplace_back(solidP);
@@ -751,7 +757,7 @@ public:
                 // {
                 //     pointsToDraw.emplace_back(p);
                 // }
-            }            
+            }
         }
     }
 
@@ -790,7 +796,7 @@ public:
         }
 
         // we need to refill lines after rotating or any transformation operation
-        fillLines();
+        fillFaces();
     }
 };
 

@@ -94,10 +94,10 @@ int main()
     std::default_random_engine generator(rd()); // rd() provides a random seed
     std::uniform_real_distribution<float> distribution(0.01, 0.1);
 
-    Cuboid specificCuboid = Cuboid(Point(screenWidth / 2, screenHeight / 2, 0), 50, 50, 50);
-    Cuboid unlitCuboid = Cuboid(Point(screenWidth / 2, 200, 0), 50, 50, 50, RGBA(255, 255, 255), false, false, true);
-    Cuboid wireCuboid = Cuboid(Point(700, screenHeight / 2, 0), 50, 50, 50, RGBA(255, 255, 255), true, false, true);
-    Cuboid wireUnculledCuboid = Cuboid(Point(200, screenHeight / 2, 0), 50, 50, 50, RGBA(255, 255, 255), true, true);
+    Cuboid specificCuboid = Cuboid(Point(screenWidth / 2, screenHeight / 2, 0), 100, 100, 100, RGBA(255, 0, 0));
+    Cuboid unlitCuboid = Cuboid(Point(screenWidth / 2, 200, 0), 100, 100, 100, RGBA(255, 255, 255), false, false, true);
+    Cuboid wireCuboid = Cuboid(Point(700, screenHeight / 2, 0), 100, 100, 100, RGBA(255, 255, 255), true, false, true);
+    Cuboid wireUnculledCuboid = Cuboid(Point(200, screenHeight / 2, 0), 100, 100, 100, RGBA(255, 255, 255), true, true);
 
     // TESTING TRIANGLE CLASS
     Triangle testTri = Triangle(Point(690, 10), Point(690, 50), Point(650, 10));
@@ -116,10 +116,10 @@ int main()
         testScreen.updateCuboid(specificCuboid);
         unlitCuboid.rotate(0.003, 0.001, 0.004);
         testScreen.updateCuboid(unlitCuboid);
-        wireCuboid.rotate(0.003, 0.001, 0.004);
-        testScreen.updateCuboid(wireCuboid);
-        wireUnculledCuboid.rotate(0.003, 0.001, 0.004);
-        testScreen.updateCuboid(wireUnculledCuboid);
+        // wireCuboid.rotate(0.003, 0.001, 0.004);
+        // testScreen.updateCuboid(wireCuboid);
+        // wireUnculledCuboid.rotate(0.003, 0.001, 0.004);
+        // testScreen.updateCuboid(wireUnculledCuboid);
 
         testScreen.displayScreen(); // Render the updated screen
         testScreen.input(renderTime, numFrames);

@@ -68,3 +68,16 @@ Notes as of 9/10
 - have a method that does work for getting solid points BUT it's extremely non performant (if cuboid is too large, rotation is too fast, or any other
 condition that leads to more processing, shit gets bad)
 - have basic lighting working
+
+To-do
+- re-write Line to use SDL_DrawLine (will prob b way more optimized BUT DONT NECESSARILY NEED) 
+- 
+
+Notes as of 9/11
+- culling works
+- fixed getting of solid points s.t no more missing pixels and more performant (key is that we project vertices first, then check bounding box of a face in 2d screen space)
+- basic lighting works
+- NEXT UP: add notion of camera + basic camera movement
+    - logically: we have to transform every object in the screen according to our current camera position
+    - read into how this is usually done
+

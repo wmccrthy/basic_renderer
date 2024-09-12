@@ -31,7 +31,7 @@ public:
         this->getPointsToDraw();
     }
 
-    Line(Point p1, Point p2, RGBA c = RGBA(255, 255, 255))
+    Line(Point p1, Point p2, RGBA c = RGBA(255, 255, 255), bool dontGetPoints = false)
     {
         point1 = p1;
         point2 = p2;
@@ -39,7 +39,10 @@ public:
         // printf("constructing line");
         // c.print();
         color = c;
-        this->getPointsToDraw();
+        if (!dontGetPoints)
+        {
+            this->getPointsToDraw();
+        }
     }
 
     // Return the slope between our line's two points

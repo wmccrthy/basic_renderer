@@ -149,7 +149,7 @@ public:
         }
     }
 
-    void projectPerspective(float FOV, float screenWidth, float screenHeight)
+    void projectPerspective(float FOV)
     {
         // need to add focal length for this to work properly (for now just mock)
         float fov_radians = FOV * M_PI / 180.0f;
@@ -214,14 +214,6 @@ public:
         }
         return Point(0, 0);
     }
-
-    // Point mapNormalizedToScreenSpace(float normX, float normY, float normZ)
-    // {
-    //     float screenX = (normX + 1.0f) * WINDOW_WIDTH / 2.0f;
-    //     float screenY = (1.0f - normY) * WINDOW_HEIGHT / 2.0f;
-    //     float screenZ = (normX + )
-    //     return Point(screenX, screenY, z.value_or(1.0f));
-    // }
 
     void print()
     {

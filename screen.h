@@ -63,7 +63,20 @@ public:
     {
         RGBA color = point.color;
         SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a); // set draw color to white
-        point.projectPerspective(FOV, WINDOW_WIDTH, WINDOW_HEIGHT);
+
+        // TRANSFORM POINT RELATIVE TO THE CAMERA POSITION HERE
+        
+        // REPRESENT CAMERA AS SET OF VECTORS (INITIALLY {0, 0, 1.0F} INDICATING WE ARE FACING FORWARD)
+
+        // DIRECTION OF MOVEMENT IS DERIVED FROM CAMERA VECTOR (UP ARROW -> MOVE IN DIR OF VECTOR, LEFT ARROW -> MOVE IN DIR OF 270DEG FROM VECTOR DIR, RIGHT ARROW -> MOVE IN DIR OF 90DEG FROM VECTOR DIR)
+        // THESE SHOULD JUST BE TRANSLATIONS
+
+        // CHANGE CAMERA VECTOR (SIMULATES LOOKING AROUND) BY APPLYING ROTATION
+
+        if (point.z.has_value())
+        {
+            point.projectPerspective(FOV);
+        }
         SDL_RenderDrawPointF(renderer, point.x, point.y);
     }
 
@@ -108,7 +121,7 @@ public:
     {
         SDL_Init(SDL_INIT_VIDEO);
         SDL_SetHint(SDL_HINT_RENDER_DRIVER, "software");
-        SDL_CreateWindowAndRenderer(WINDOW_WIDTH, WINDOW_HEIGHT, 0, &window, &renderer);
+        SDL_CreateWindowAndRenderer(WINDOW_WIDTH, WINDOW_HEIGHT, SDL_RENDERER_PRESENTVSYNC, &window, &renderer);
         SDL_RenderSetScale(renderer, 1.0, 1.0);
     }
 };
