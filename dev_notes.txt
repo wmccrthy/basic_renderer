@@ -77,7 +77,32 @@ Notes as of 9/11
 - culling works
 - fixed getting of solid points s.t no more missing pixels and more performant (key is that we project vertices first, then check bounding box of a face in 2d screen space)
 - basic lighting works
+
 - NEXT UP: add notion of camera + basic camera movement
     - logically: we have to transform every object in the screen according to our current camera position
     - read into how this is usually done
 
+
+
+Notes as of 9/12
+- basic camera movement working
+- camera rotation tweaking
+- TO-DO:
+    FIX CAMERA ROTATION
+
+    CLEAN, CLEAN, CLEAN! ADD /*/ COMMENTS TO EVERY METHOD AND CLASS S.T CODE IS EASIER TO USE
+
+
+DEV NOTES AS OF 9/15
+- refactoring camera stuff to use single matrix transformation for moving points relative to camera
+- the camera normals (and rotation, etc) seem to be working themselves but the transformation is not;
+  circle back to 3d graphics from scratch video for ref
+
+
+NOTES AS OF 9/19
+- haven't worked on proj in a few days; camera matrix transformation not working properly
+- CONSIDER REAPPROACH FOR CAMERA:
+    - camera pos works properly
+    - camera normals and rotation of the normals works properly
+    - if we compute the "new center", based on where the camera's forward normal points, we can translate points based on their pos relative to the new center point
+    - doing this in updateRelativeToCamera

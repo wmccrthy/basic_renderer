@@ -8,130 +8,70 @@
 int main()
 {
     Screen testScreen;
-    int screenWidth = testScreen.WINDOW_WIDTH, screenHeight = testScreen.WINDOW_HEIGHT;
+    int screenWidth = testScreen.WINDOW_WIDTH;
+    int screenHeight = testScreen.WINDOW_HEIGHT;
 
-    // testing point class
-    Point testPoint3D = Point(3, 5, 10), testPoint2D = Point(1, 6);
-    testPoint3D.print();
-    testPoint2D.print();
-    matrix testPointVector3D = testPoint3D.getVector(), testPointVector2D = testPoint2D.getVector();
-    testPointVector2D.print();
-    testPointVector3D.print();
-    matrix transposeTest = testPointVector3D.transpose();
-    transposeTest.print();
-    testPointVector3D.multiply(transposeTest).print();
-    transposeTest.multiply(testPointVector3D).print();
+    // Create a square in the center of the screen
+    float squareSize = 100.0f;
+    float centerX = screenWidth / 2.0f;
+    float centerY = screenHeight / 2.0f;
+    
+    // Create the square's vertices
+    Point p1 = Point(centerX - squareSize/2, centerY - squareSize/2);
+    Point p2 = Point(centerX + squareSize/2, centerY - squareSize/2);
+    Point p3 = Point(centerX + squareSize/2, centerY + squareSize/2);
+    Point p4 = Point(centerX - squareSize/2, centerY + squareSize/2);
 
-    // test matrix implementation
-    matrix test1(2, 2);
-    test1[0][0] = 1;
-    test1[0][1] = 3;
-    test1[1][0] = 2;
-    test1[1][1] = 2;
-    matrix test2(2, 2);
-    test2[0][0] = 1;
-    test2[0][1] = 3;
-    test2[1][0] = 2;
-    test2[1][1] = 2;
-    test1.print();
-    matrix test3 = test1.multiply(test2);
-    test3.print();
-    matrix test4 = test3.multiply(test1);
-    test4.print();
-    matrix test5 = test4.add(test1);
-    test5.print();
-    matrix test6 = test5.multiply(testPointVector2D);
-    test6.print();
+    // Create the square with red color
+    Square centerSquare = Square(p1, p2, p3, p4, RGBA(255, 0, 0));
 
-    // matrix massiveTest(20, 20);
-    // for (int i = 0; i < 20; i ++)
-    // {
-    //     for (int j = 0; j < 20; j ++)
-    //     {
-    //         massiveTest[i][j] = rand() % 10;
-    //     }
-    // }
-    // massiveTest.print();
-
-    // Draws Rectangle using Lines
-    // testScreen.addLine(100, 100, 100, 200);
-    // testScreen.addLine(100, 200, 200, 200);
-    // testScreen.addLine(200, 200, 200, 100);
-    // testScreen.addLine(200, 100, 100, 100);
-
-    // Draws random quadrilaterals
-    for (int i = 0; i < 3; i++)
-    {
-        // randomize four points
-        // Point p1 = Point(rand() % screenWidth, rand() % screenHeight);
-        // Point p2 = Point(rand() % screenWidth, rand() % screenHeight);
-        // Point p3 = Point(rand() % screenWidth, rand() % screenHeight);
-        // Point p4 = Point(rand() % screenWidth, rand() % screenHeight);
-
-        // hardcode four points for testing
-        Point p1 = Point(390, 390);
-        Point p2 = Point(430, 430);
-        Point p3 = Point(650, 300);
-        Point p4 = Point(500, 330);
-
-        // call addQuadrilateral passing four randomized points
-        testScreen.addQuadrilateral<Quadrilateral>(p1, p2, p3, p4, RGBA(255, 0, 0));
-        testScreen.addQuadrilateral<Rectangle>(p1, p2, p3, p4, RGBA(0, 255, 0));
-        testScreen.addQuadrilateral<Square>(p1, p2, p3, p4, RGBA(0, 0, 255));
-    }
-
-    // Test adding random cuboids
-    std::vector<Cuboid> cuboids;
-    for (int i = 0; i < 10; i++)
-    {
-        cuboids.emplace_back(Cuboid(
-            Point(rand() % screenWidth, rand() % screenHeight, rand() % screenWidth),
-            rand() % 100, rand() % 100, rand() % 100,
-            RGBA(rand() % 255, rand() % 255, rand() % 255)));
-    }
-
-    std::random_device rd;
-    std::default_random_engine generator(rd()); // rd() provides a random seed
-    std::uniform_real_distribution<float> distribution(0.01, 0.1);
-
-    Cuboid specificCuboid = Cuboid(Point(screenWidth / 2, screenHeight / 2, 0), 100, 100, 100, RGBA(255, 0, 0));
-    Cuboid unlitCuboid = Cuboid(Point(screenWidth / 2, 200, 0), 100, 100, 100, RGBA(255, 255, 255), false, false, true);
-    Cuboid wireCuboid = Cuboid(Point(700, screenHeight / 2, 0), 100, 100, 100, RGBA(255, 255, 255), true, false, true);
-    Cuboid wireUnculledCuboid = Cuboid(Point(200, screenHeight / 2, 0), 100, 100, 100, RGBA(255, 255, 255), true, true);
-
-    // TESTING TRIANGLE CLASS
-    Triangle testTri = Triangle(Point(690, 10), Point(690, 50), Point(650, 10));
-
-    // total render time (for testing)
+    // Total render time tracking
     float renderTime = 0;
     int numFrames = 0;
+    float rotationAngle = 0.0f;
 
     while (true)
     {
         clock_t frameStartTime = clock();
         testScreen.clearPoints();
 
-        // rotate and update points for specific cuboid
-        specificCuboid.rotate(0.003, 0.001, 0.004);
-        testScreen.updateCuboid(specificCuboid);
-        unlitCuboid.rotate(0.003, 0.001, 0.004);
-        testScreen.updateCuboid(unlitCuboid);
-        // wireCuboid.rotate(0.003, 0.001, 0.004);
-        // testScreen.updateCuboid(wireCuboid);
-        // wireUnculledCuboid.rotate(0.003, 0.001, 0.004);
-        // testScreen.updateCuboid(wireUnculledCuboid);
+        // Rotate the square
+        rotationAngle += 0.01f; // Adjust rotation speed as needed
+        
+        // Update square vertices with rotation
+        matrix rotZ = zRotationMatrix(rotationAngle);
+        
+        // Convert points to vectors, apply rotation, and convert back
+        matrix p1Vec = p1.getVector(true);
+        matrix p2Vec = p2.getVector(true);
+        matrix p3Vec = p3.getVector(true);
+        matrix p4Vec = p4.getVector(true);
+        
+        p1 = getPointFromVector(rotZ.multiply(p1Vec));
+        p2 = getPointFromVector(rotZ.multiply(p2Vec));
+        p3 = getPointFromVector(rotZ.multiply(p3Vec));
+        p4 = getPointFromVector(rotZ.multiply(p4Vec));
+        
+        // Update the square with new vertices
+        centerSquare = Square(p1, p2, p3, p4, RGBA(255, 0, 0));
+        
+        // Add the square to the screen
+        testScreen.addQuadrilateral<Square>(p1, p2, p3, p4, RGBA(255, 0, 0));
 
-        testScreen.displayScreen(); // Render the updated screen
+        // Display the scene and handle input
+        testScreen.displayScreen();
         testScreen.input(renderTime, numFrames);
 
-        SDL_Delay(0);
-
+        // Calculate frame time
         clock_t frameEndTime = clock() - frameStartTime;
         renderTime += (float)frameEndTime / CLOCKS_PER_SEC * 1000;
         numFrames += 1;
-        // std::cout << "Frame rendered in: " << (float)frameEndTime/CLOCKS_PER_SEC * 1000 << "ms \n";
+
+        // Optional: Print FPS every 60 frames
+        if (numFrames % 60 == 0) {
+            std::cout << "Average FPS: " << 1000.0f / (renderTime / numFrames) << "\n";
+        }
     }
-    // std::cout << "Average frame render time: " << renderTime / numFrames << "\n";
 
     return 0;
 }
