@@ -45,6 +45,27 @@ public:
         return Point(x - other.x, y - other.y, z.value_or(0) - other.z.value_or(0));
     }
 
+    Point operator+(const Point &other) const
+    {
+        return Point(x + other.x, y + other.y, z.value_or(0) + other.z.value_or(0));
+    }
+
+    // scale vector with constant
+    Point operator*(float scale) const
+    {
+        return Point(x * scale, y * scale, z.value() * scale);
+    }
+
+    Point operator*(Point oP) const
+    {
+        return Point(x * oP.x, y * oP.y, z.value() * oP.z.value());
+    }
+
+    Point operator/(float div) const
+    {
+        return Point(x / div, y / div, z.value() / div);
+    }
+
     matrix getVector(bool isAffine = false)
     {
         matrix pointVector;
@@ -77,19 +98,6 @@ public:
             pointVector.addElement(2, 0, normalizeCoordinate(z.value(), 0, Z_MAX));
         }
         return pointVector;
-    }
-
-    // method expects more rows than cols (column vector) as point
-    // if more cols than rows, will take transpose
-    Point getPointFromVector(matrix vector)
-    {
-        int r = vector.numRows, c = vector.numCols;
-        if (c > r)
-        {
-            vector = vector.transpose();
-        }
-        Point convertedPoint = vector.numRows > 3 ? Point(vector[0][0], vector[1][0], vector[2][0]) : Point(vector[0][0], vector[1][0]);
-        return convertedPoint;
     }
 
     Point crossProduct(Point otherDirectionVectorPoint)
@@ -131,7 +139,7 @@ public:
     }
 
     /*
-    Normalize Point between (0, 1)
+    Normalize Point between (-1, 1)
     */
     Point stdNormalize()
     {
@@ -177,12 +185,24 @@ public:
 
             // map projected coordinates back to screen space
             x = (normalizedX + 1.0f) * WINDOW_WIDTH / 2.0f;
-            y = (1.0f - normalizedY) * WINDOW_HEIGHT / 2.0f;
+            y = (1.0f - normalizedY) * WINDOW_HEIGHT / 2.0f;// this is swapping Y s.t it is position from bottom up, not top down
+            // the code below reverts y orientation back to normal (top down)
+            float yDiff = normalizedY - (WINDOW_HEIGHT / 2);
+            normalizedY = (WINDOW_HEIGHT / 2) - yDiff;
 
             // Debug output after projection
             // std::cout << "Projected (x, y): (" << x << ", " << y << ")" << std::endl;
             // std::cout << "Projected normalized (x,y): (" << normalizeCoordinate(x, 0, WINDOW_WIDTH) << "," << normalizeCoordinate(y, 0, WINDOW_HEIGHT) << ")" << std::endl;
         }
+    }
+
+    void fromNormalizedToScreenSpace()
+    {
+        x = (x + 1.0f) * WINDOW_WIDTH / 2.0f;
+        y = (1.0f - y) * WINDOW_HEIGHT / 2.0f;// this is swapping Y s.t it is position from bottom up, not top down
+        // the code below reverts y orientation back to normal (top down)
+        float yDiff = y - (WINDOW_HEIGHT / 2);
+        y = (WINDOW_HEIGHT / 2) - yDiff;
     }
 
     Point getProjected(float FOV)
@@ -208,7 +228,10 @@ public:
 
             // map projected coordinates back to screen space
             normalizedX = (normalizedX + 1.0f) * WINDOW_WIDTH / 2.0f;
-            normalizedY = (1.0f - normalizedY) * WINDOW_HEIGHT / 2.0f;
+            normalizedY = (1.0f - normalizedY) * WINDOW_HEIGHT / 2.0f; // this is swapping Y s.t it is position from bottom up, not top down
+            // the code below reverts y orientation back to normal (top down)
+            float yDiff = normalizedY - (WINDOW_HEIGHT / 2);
+            normalizedY = (WINDOW_HEIGHT / 2) - yDiff;
 
             return Point(normalizedX, normalizedY);
         }
